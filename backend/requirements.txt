@@ -1,0 +1,12 @@
+fastapi==0.141.1
+uvicorn==0.52.4
+sqlalchemy==2.0.52
+cryptography==50.0.1
+opencv-python==5.0.0.93
+pillow==12.3.0
+numpy==2.5.2
+rapidocr-onnxruntime==1.4.4
+onnxruntime==1.29.0
+pypdfium2==5.13.0
+python-multipart==0.0.32
+psycopg[binary]==3.3.4

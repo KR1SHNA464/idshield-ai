@@ -1,0 +1,12 @@
+node_modules
+.git
+.wrangler
+dist
+desktop-dist
+backend/data
+data
+**/__pycache__
+**/.pytest_cache
+*.exe
+*.spec
+.env

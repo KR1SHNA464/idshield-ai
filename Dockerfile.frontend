@@ -1,0 +1,12 @@
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npx vite build --config vite.desktop.config.ts && cp desktop-dist/desktop/index.html desktop-dist/index.html
+FROM nginx:alpine
+COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/desktop-dist /usr/share/nginx/html
+# Same React application, routed to the Python API through this same-origin proxy.
+RUN sed -i 's@</head>@<script>window.__IDSHIELD_NATIVE__=true</script></head>@' /usr/share/nginx/html/index.html
+EXPOSE 80
