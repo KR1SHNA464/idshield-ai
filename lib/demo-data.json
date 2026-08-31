@@ -1,0 +1,5527 @@
+[
+  {
+    "id": "IDS-2026-0020",
+    "name": "Aarav Mehta",
+    "initials": "AM",
+    "scenario": "combined",
+    "scenarioLabel": "Checksum failure + photo splice",
+    "status": "In review",
+    "risk": 66,
+    "riskLevel": "High",
+    "created_at": "2026-09-01T09:42:00+05:30",
+    "documents": [
+      {
+        "id": "doc-0-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-0.png",
+        "fields": {
+          "name": "AARAV MEHTA",
+          "dob": "950314",
+          "document_number": "D00000001",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOMEHTA<<AARAV<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000013UTO9503146X3103142SPECIMEN<<<<<<22"
+          ],
+          "fields": {
+            "name": "AARAV MEHTA",
+            "document_number": "D00000001",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000001",
+              "expected": "2",
+              "actual": "3",
+              "valid": false,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000001395031463103142SPECIMEN<<<<<<2",
+              "expected": "9",
+              "actual": "2",
+              "valid": false,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "Document-number and composite check digits fail. Expand the MRZ evidence to inspect expected vs. observed values.",
+        "points": 30,
+        "confidence": 100,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "Injected edit creates a local compression-residual difference. ELA proxy is not proof of tampering.",
+        "points": 12,
+        "confidence": 72,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "Injected rectangular photo boundary creates an edge discontinuity, consistent with the photo-splice test scenario.",
+        "points": 20,
+        "confidence": 84,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-0.png",
+    "comparisonPortrait": "/demo/portrait-0.png",
+    "decision": null,
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0019",
+    "name": "Mira Sen",
+    "initials": "MS",
+    "scenario": "clean",
+    "scenarioLabel": "Consistent synthetic specimen",
+    "status": "Pending",
+    "risk": 4,
+    "riskLevel": "Low",
+    "created_at": "2026-09-01T09:40:00+05:30",
+    "documents": [
+      {
+        "id": "doc-1-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-1.png",
+        "fields": {
+          "name": "MIRA SEN",
+          "dob": "950314",
+          "document_number": "D00000002",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOSEN<<MIRA<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000023UTO9503146X3103142SPECIMEN<<<<<<20"
+          ],
+          "fields": {
+            "name": "MIRA SEN",
+            "document_number": "D00000002",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000002",
+              "expected": "3",
+              "actual": "3",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000002395031463103142SPECIMEN<<<<<<2",
+              "expected": "0",
+              "actual": "0",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-1.png",
+    "comparisonPortrait": "/demo/portrait-1.png",
+    "decision": null,
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0018",
+    "name": "Dev Khanna",
+    "initials": "DK",
+    "scenario": "face",
+    "scenarioLabel": "Low portrait similarity",
+    "status": "In review",
+    "risk": 39,
+    "riskLevel": "Medium",
+    "created_at": "2026-09-01T09:38:00+05:30",
+    "documents": [
+      {
+        "id": "doc-2-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-2.png",
+        "fields": {
+          "name": "DEV KHANNA",
+          "dob": "950314",
+          "document_number": "D00000003",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOKHANNA<<DEV<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000034UTO9503146X3103142SPECIMEN<<<<<<28"
+          ],
+          "fields": {
+            "name": "DEV KHANNA",
+            "document_number": "D00000003",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000003",
+              "expected": "4",
+              "actual": "4",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000003495031463103142SPECIMEN<<<<<<2",
+              "expected": "8",
+              "actual": "8",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "Portrait similarity is 61%, below the illustrative 80% threshold. This is a controlled fixture, not a calibrated biometric probability.",
+        "points": 35,
+        "confidence": 75,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 61,
+    "portrait": "/demo/portrait-2.png",
+    "comparisonPortrait": "/demo/portrait-5.png",
+    "decision": null,
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0017",
+    "name": "Leela Rao",
+    "initials": "LR",
+    "scenario": "fields",
+    "scenarioLabel": "Visible / MRZ field mismatch",
+    "status": "Pending",
+    "risk": 30,
+    "riskLevel": "Medium",
+    "created_at": "2026-09-01T09:36:00+05:30",
+    "documents": [
+      {
+        "id": "doc-3-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-3.png",
+        "fields": {
+          "name": "LEELA RAO",
+          "dob": "960314",
+          "document_number": "D00000004",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTORAO<<LEELA<<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000045UTO9503146X3103142SPECIMEN<<<<<<26"
+          ],
+          "fields": {
+            "name": "LEELA RAO",
+            "document_number": "D00000004",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000004",
+              "expected": "5",
+              "actual": "5",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000004595031463103142SPECIMEN<<<<<<2",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Visible DOB 960314 differs from MRZ DOB 950314. Officer must resolve the discrepancy.",
+        "points": 26,
+        "confidence": 94,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-3.png",
+    "comparisonPortrait": "/demo/portrait-3.png",
+    "decision": null,
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0016",
+    "name": "Nikhil Das",
+    "initials": "ND",
+    "scenario": "clean",
+    "scenarioLabel": "Consistent synthetic specimen",
+    "status": "Pending",
+    "risk": 4,
+    "riskLevel": "Low",
+    "created_at": "2026-09-01T09:34:00+05:30",
+    "documents": [
+      {
+        "id": "doc-4-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-4.png",
+        "fields": {
+          "name": "NIKHIL DAS",
+          "dob": "950314",
+          "document_number": "D00000005",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTODAS<<NIKHIL<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000056UTO9503146X3103142SPECIMEN<<<<<<24"
+          ],
+          "fields": {
+            "name": "NIKHIL DAS",
+            "document_number": "D00000005",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000005",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000005695031463103142SPECIMEN<<<<<<2",
+              "expected": "4",
+              "actual": "4",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-4.png",
+    "comparisonPortrait": "/demo/portrait-4.png",
+    "decision": null,
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0015",
+    "name": "Zoya Nair",
+    "initials": "ZN",
+    "scenario": "identity",
+    "scenarioLabel": "Same portrait, different identity",
+    "status": "In review",
+    "risk": 58,
+    "riskLevel": "High",
+    "created_at": "2026-09-01T09:32:00+05:30",
+    "documents": [
+      {
+        "id": "doc-5-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-5.png",
+        "fields": {
+          "name": "ZOYA NAIR",
+          "dob": "950314",
+          "document_number": "D00000006",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTONAIR<<ZOYA<<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000067UTO9503146X3103142SPECIMEN<<<<<<22"
+          ],
+          "fields": {
+            "name": "ZOYA NAIR",
+            "document_number": "D00000006",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000006",
+              "expected": "7",
+              "actual": "7",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000006795031463103142SPECIMEN<<<<<<2",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "A linked synthetic record has a conflicting name.",
+        "points": 26,
+        "confidence": 94,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "The same synthetic portrait is linked to Aarav Mehta (IDS-2026-0020) and Zoya Nair. Names conflict.",
+        "points": 28,
+        "confidence": 90,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-5.png",
+    "comparisonPortrait": "/demo/portrait-0.png",
+    "decision": null,
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0014",
+    "name": "Ishan Roy",
+    "initials": "IR",
+    "scenario": "checksum",
+    "scenarioLabel": "Invalid MRZ check digits",
+    "status": "In review",
+    "risk": 34,
+    "riskLevel": "Medium",
+    "created_at": "2026-09-01T09:30:00+05:30",
+    "documents": [
+      {
+        "id": "doc-6-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-6.png",
+        "fields": {
+          "name": "ISHAN ROY",
+          "dob": "950314",
+          "document_number": "D00000007",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOROY<<ISHAN<<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000079UTO9503146X3103142SPECIMEN<<<<<<20"
+          ],
+          "fields": {
+            "name": "ISHAN ROY",
+            "document_number": "D00000007",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000007",
+              "expected": "8",
+              "actual": "9",
+              "valid": false,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000007995031463103142SPECIMEN<<<<<<2",
+              "expected": "7",
+              "actual": "0",
+              "valid": false,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "Document-number and composite check digits fail. Expand the MRZ evidence to inspect expected vs. observed values.",
+        "points": 30,
+        "confidence": 100,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-6.png",
+    "comparisonPortrait": "/demo/portrait-6.png",
+    "decision": null,
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0013",
+    "name": "Tara Bose",
+    "initials": "TB",
+    "scenario": "forensics",
+    "scenarioLabel": "Font-spacing + clone proxy",
+    "status": "In review",
+    "risk": 50,
+    "riskLevel": "High",
+    "created_at": "2026-09-01T09:28:00+05:30",
+    "documents": [
+      {
+        "id": "doc-7-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-7.png",
+        "fields": {
+          "name": "TARA BOSE",
+          "dob": "950314",
+          "document_number": "D00000008",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOBOSE<<TARA<<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000089UTO9503146X3103142SPECIMEN<<<<<<28"
+          ],
+          "fields": {
+            "name": "TARA BOSE",
+            "document_number": "D00000008",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000008",
+              "expected": "9",
+              "actual": "9",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000008995031463103142SPECIMEN<<<<<<2",
+              "expected": "8",
+              "actual": "8",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "Injected irregular spacing in the name field.",
+        "points": 14,
+        "confidence": 79,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "Synthetic edited field produces an ELA-style inconsistency.",
+        "points": 12,
+        "confidence": 72,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "Injected photo boundary is discontinuous.",
+        "points": 20,
+        "confidence": 84,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-7.png",
+    "comparisonPortrait": "/demo/portrait-7.png",
+    "decision": null,
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0012",
+    "name": "Kabir Sethi",
+    "initials": "KS",
+    "scenario": "blur",
+    "scenarioLabel": "Blurred capture \u2014 recapture needed",
+    "status": "Recapture",
+    "risk": 29,
+    "riskLevel": "Medium",
+    "created_at": "2026-09-01T09:26:00+05:30",
+    "documents": [
+      {
+        "id": "doc-8-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-8.png",
+        "fields": {
+          "name": "KABIR SETHI",
+          "dob": "950314",
+          "document_number": "D00000009",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOSETHI<<KABIR<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000090UTO9503146X3103142SPECIMEN<<<<<<26"
+          ],
+          "fields": {
+            "name": "KABIR SETHI",
+            "document_number": "D00000009",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000009",
+              "expected": "0",
+              "actual": "0",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000009095031463103142SPECIMEN<<<<<<2",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": false,
+          "blur_variance": 8,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blurred, downsampled capture. Processing pauses at Intake; request recapture before OCR.",
+        "points": 25,
+        "confidence": 96,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "blocked",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "waiting",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "waiting",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "waiting",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "waiting",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-8.png",
+    "comparisonPortrait": "/demo/portrait-8.png",
+    "decision": null,
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0011",
+    "name": "Anika Shah",
+    "initials": "AS",
+    "scenario": "clean",
+    "scenarioLabel": "Consistent synthetic specimen",
+    "status": "Pending",
+    "risk": 4,
+    "riskLevel": "Low",
+    "created_at": "2026-09-01T09:24:00+05:30",
+    "documents": [
+      {
+        "id": "doc-9-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-9.png",
+        "fields": {
+          "name": "ANIKA SHAH",
+          "dob": "950314",
+          "document_number": "D00000010",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOSHAH<<ANIKA<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000104UTO9503146X3103142SPECIMEN<<<<<<28"
+          ],
+          "fields": {
+            "name": "ANIKA SHAH",
+            "document_number": "D00000010",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000010",
+              "expected": "4",
+              "actual": "4",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000010495031463103142SPECIMEN<<<<<<2",
+              "expected": "8",
+              "actual": "8",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-9.png",
+    "comparisonPortrait": "/demo/portrait-9.png",
+    "decision": null,
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0010",
+    "name": "Riya Menon",
+    "initials": "RM",
+    "scenario": "clean",
+    "scenarioLabel": "Consistent synthetic specimen",
+    "status": "Pending",
+    "risk": 4,
+    "riskLevel": "Low",
+    "created_at": "2026-09-01T09:22:00+05:30",
+    "documents": [
+      {
+        "id": "doc-10-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-10.png",
+        "fields": {
+          "name": "RIYA MENON",
+          "dob": "950314",
+          "document_number": "D00000011",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOMENON<<RIYA<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000115UTO9503146X3103142SPECIMEN<<<<<<26"
+          ],
+          "fields": {
+            "name": "RIYA MENON",
+            "document_number": "D00000011",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000011",
+              "expected": "5",
+              "actual": "5",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000011595031463103142SPECIMEN<<<<<<2",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-10.png",
+    "comparisonPortrait": "/demo/portrait-10.png",
+    "decision": null,
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0009",
+    "name": "Arjun Kale",
+    "initials": "AK",
+    "scenario": "fields",
+    "scenarioLabel": "Visible / MRZ field mismatch",
+    "status": "Decided",
+    "risk": 30,
+    "riskLevel": "Medium",
+    "created_at": "2026-09-01T09:20:00+05:30",
+    "documents": [
+      {
+        "id": "doc-11-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-11.png",
+        "fields": {
+          "name": "ARJUN KALE",
+          "dob": "960314",
+          "document_number": "D00000012",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOKALE<<ARJUN<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000126UTO9503146X3103142SPECIMEN<<<<<<24"
+          ],
+          "fields": {
+            "name": "ARJUN KALE",
+            "document_number": "D00000012",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000012",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000012695031463103142SPECIMEN<<<<<<2",
+              "expected": "4",
+              "actual": "4",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Visible DOB 960314 differs from MRZ DOB 950314. Officer must resolve the discrepancy.",
+        "points": 26,
+        "confidence": 94,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-11.png",
+    "comparisonPortrait": "/demo/portrait-11.png",
+    "decision": {
+      "action": "Approve",
+      "officer": "Ananya Sharma",
+      "note": "Reviewed all synthetic evidence; recorded for demo.",
+      "at": "2026-09-01T09:30:00+05:30"
+    },
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0008",
+    "name": "Sana Kapur",
+    "initials": "SK",
+    "scenario": "clean",
+    "scenarioLabel": "Consistent synthetic specimen",
+    "status": "Decided",
+    "risk": 4,
+    "riskLevel": "Low",
+    "created_at": "2026-09-01T09:18:00+05:30",
+    "documents": [
+      {
+        "id": "doc-12-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-12.png",
+        "fields": {
+          "name": "SANA KAPUR",
+          "dob": "950314",
+          "document_number": "D00000013",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOKAPUR<<SANA<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000137UTO9503146X3103142SPECIMEN<<<<<<22"
+          ],
+          "fields": {
+            "name": "SANA KAPUR",
+            "document_number": "D00000013",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000013",
+              "expected": "7",
+              "actual": "7",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000013795031463103142SPECIMEN<<<<<<2",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-12.png",
+    "comparisonPortrait": "/demo/portrait-12.png",
+    "decision": {
+      "action": "Approve",
+      "officer": "Ananya Sharma",
+      "note": "Reviewed all synthetic evidence; recorded for demo.",
+      "at": "2026-09-01T09:30:00+05:30"
+    },
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0007",
+    "name": "Vihaan Patel",
+    "initials": "VP",
+    "scenario": "security",
+    "scenarioLabel": "Blank security-feature region",
+    "status": "Decided",
+    "risk": 16,
+    "riskLevel": "Low",
+    "created_at": "2026-09-01T09:16:00+05:30",
+    "documents": [
+      {
+        "id": "doc-13-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-13.png",
+        "fields": {
+          "name": "VIHAAN PATEL",
+          "dob": "950314",
+          "document_number": "D00000014",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOPATEL<<VIHAAN<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000148UTO9503146X3103142SPECIMEN<<<<<<20"
+          ],
+          "fields": {
+            "name": "VIHAAN PATEL",
+            "document_number": "D00000014",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000014",
+              "expected": "8",
+              "actual": "8",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000014895031463103142SPECIMEN<<<<<<2",
+              "expected": "0",
+              "actual": "0",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "The expected specimen security region is blank. A texture check cannot authenticate holograms.",
+        "points": 12,
+        "confidence": 68,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-13.png",
+    "comparisonPortrait": "/demo/portrait-13.png",
+    "decision": {
+      "action": "Approve",
+      "officer": "Ananya Sharma",
+      "note": "Reviewed all synthetic evidence; recorded for demo.",
+      "at": "2026-09-01T09:30:00+05:30"
+    },
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0006",
+    "name": "Noor Jha",
+    "initials": "NJ",
+    "scenario": "clean",
+    "scenarioLabel": "Consistent synthetic specimen",
+    "status": "Decided",
+    "risk": 4,
+    "riskLevel": "Low",
+    "created_at": "2026-09-01T09:14:00+05:30",
+    "documents": [
+      {
+        "id": "doc-14-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-14.png",
+        "fields": {
+          "name": "NOOR JHA",
+          "dob": "950314",
+          "document_number": "D00000015",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOJHA<<NOOR<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000159UTO9503146X3103142SPECIMEN<<<<<<28"
+          ],
+          "fields": {
+            "name": "NOOR JHA",
+            "document_number": "D00000015",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000015",
+              "expected": "9",
+              "actual": "9",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000015995031463103142SPECIMEN<<<<<<2",
+              "expected": "8",
+              "actual": "8",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-14.png",
+    "comparisonPortrait": "/demo/portrait-14.png",
+    "decision": {
+      "action": "Approve",
+      "officer": "Ananya Sharma",
+      "note": "Reviewed all synthetic evidence; recorded for demo.",
+      "at": "2026-09-01T09:30:00+05:30"
+    },
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0005",
+    "name": "Aditi Vora",
+    "initials": "AV",
+    "scenario": "clean",
+    "scenarioLabel": "Consistent synthetic specimen",
+    "status": "Decided",
+    "risk": 4,
+    "riskLevel": "Low",
+    "created_at": "2026-09-01T09:12:00+05:30",
+    "documents": [
+      {
+        "id": "doc-15-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-15.png",
+        "fields": {
+          "name": "ADITI VORA",
+          "dob": "950314",
+          "document_number": "D00000016",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOVORA<<ADITI<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000160UTO9503146X3103142SPECIMEN<<<<<<26"
+          ],
+          "fields": {
+            "name": "ADITI VORA",
+            "document_number": "D00000016",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000016",
+              "expected": "0",
+              "actual": "0",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000016095031463103142SPECIMEN<<<<<<2",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-15.png",
+    "comparisonPortrait": "/demo/portrait-15.png",
+    "decision": {
+      "action": "Approve",
+      "officer": "Ananya Sharma",
+      "note": "Reviewed all synthetic evidence; recorded for demo.",
+      "at": "2026-09-01T09:30:00+05:30"
+    },
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0004",
+    "name": "Rehan Dutt",
+    "initials": "RD",
+    "scenario": "checksum",
+    "scenarioLabel": "Invalid MRZ check digits",
+    "status": "Decided",
+    "risk": 34,
+    "riskLevel": "Medium",
+    "created_at": "2026-09-01T09:10:00+05:30",
+    "documents": [
+      {
+        "id": "doc-16-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-16.png",
+        "fields": {
+          "name": "REHAN DUTT",
+          "dob": "950314",
+          "document_number": "D00000017",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTODUTT<<REHAN<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000172UTO9503146X3103142SPECIMEN<<<<<<24"
+          ],
+          "fields": {
+            "name": "REHAN DUTT",
+            "document_number": "D00000017",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000017",
+              "expected": "1",
+              "actual": "2",
+              "valid": false,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000017295031463103142SPECIMEN<<<<<<2",
+              "expected": "1",
+              "actual": "4",
+              "valid": false,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "Document-number and composite check digits fail. Expand the MRZ evidence to inspect expected vs. observed values.",
+        "points": 30,
+        "confidence": 100,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-16.png",
+    "comparisonPortrait": "/demo/portrait-16.png",
+    "decision": {
+      "action": "Approve",
+      "officer": "Ananya Sharma",
+      "note": "Reviewed all synthetic evidence; recorded for demo.",
+      "at": "2026-09-01T09:30:00+05:30"
+    },
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0003",
+    "name": "Diya Suri",
+    "initials": "DS",
+    "scenario": "clean",
+    "scenarioLabel": "Consistent synthetic specimen",
+    "status": "Decided",
+    "risk": 4,
+    "riskLevel": "Low",
+    "created_at": "2026-09-01T09:08:00+05:30",
+    "documents": [
+      {
+        "id": "doc-17-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-17.png",
+        "fields": {
+          "name": "DIYA SURI",
+          "dob": "950314",
+          "document_number": "D00000018",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOSURI<<DIYA<<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000182UTO9503146X3103142SPECIMEN<<<<<<22"
+          ],
+          "fields": {
+            "name": "DIYA SURI",
+            "document_number": "D00000018",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000018",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000018295031463103142SPECIMEN<<<<<<2",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-17.png",
+    "comparisonPortrait": "/demo/portrait-17.png",
+    "decision": {
+      "action": "Approve",
+      "officer": "Ananya Sharma",
+      "note": "Reviewed all synthetic evidence; recorded for demo.",
+      "at": "2026-09-01T09:30:00+05:30"
+    },
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0002",
+    "name": "Kiran Bediya",
+    "initials": "KB",
+    "scenario": "clean",
+    "scenarioLabel": "Consistent synthetic specimen",
+    "status": "Decided",
+    "risk": 4,
+    "riskLevel": "Low",
+    "created_at": "2026-09-01T09:06:00+05:30",
+    "documents": [
+      {
+        "id": "doc-18-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-18.png",
+        "fields": {
+          "name": "KIRAN BEDIYA",
+          "dob": "950314",
+          "document_number": "D00000019",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOBEDIYA<<KIRAN<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000193UTO9503146X3103142SPECIMEN<<<<<<20"
+          ],
+          "fields": {
+            "name": "KIRAN BEDIYA",
+            "document_number": "D00000019",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000019",
+              "expected": "3",
+              "actual": "3",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000019395031463103142SPECIMEN<<<<<<2",
+              "expected": "0",
+              "actual": "0",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-18.png",
+    "comparisonPortrait": "/demo/portrait-18.png",
+    "decision": {
+      "action": "Approve",
+      "officer": "Ananya Sharma",
+      "note": "Reviewed all synthetic evidence; recorded for demo.",
+      "at": "2026-09-01T09:30:00+05:30"
+    },
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  },
+  {
+    "id": "IDS-2026-0001",
+    "name": "Samar Lal",
+    "initials": "SL",
+    "scenario": "clean",
+    "scenarioLabel": "Consistent synthetic specimen",
+    "status": "Decided",
+    "risk": 4,
+    "riskLevel": "Low",
+    "created_at": "2026-09-01T09:04:00+05:30",
+    "documents": [
+      {
+        "id": "doc-19-1",
+        "label": "Specimen passport",
+        "image": "/demo/passport-19.png",
+        "fields": {
+          "name": "SAMAR LAL",
+          "dob": "950314",
+          "document_number": "D00000020",
+          "nationality": "UTO",
+          "issue": "210314",
+          "expiry": "310314",
+          "sex": "X"
+        },
+        "mrz": {
+          "format": "TD3",
+          "lines": [
+            "P<UTOLAL<<SAMAR<<<<<<<<<<<<<<<<<<<<<<<<<<<<<",
+            "D000000207UTO9503146X3103142SPECIMEN<<<<<<22"
+          ],
+          "fields": {
+            "name": "SAMAR LAL",
+            "document_number": "D00000020",
+            "dob": "950314",
+            "expiry": "310314",
+            "nationality": "UTO",
+            "sex": "X"
+          },
+          "checks": [
+            {
+              "field": "Document number",
+              "input": "D00000020",
+              "expected": "7",
+              "actual": "7",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Date of birth",
+              "input": "950314",
+              "expected": "6",
+              "actual": "6",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Expiry date",
+              "input": "310314",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Optional data",
+              "input": "SPECIMEN<<<<<<",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            },
+            {
+              "field": "Composite",
+              "input": "D00000020795031463103142SPECIMEN<<<<<<2",
+              "expected": "2",
+              "actual": "2",
+              "valid": true,
+              "rule": "ICAO 9303: repeating 7, 3, 1 weights; sum modulo 10"
+            }
+          ],
+          "error": null
+        },
+        "quality": {
+          "ok": true,
+          "blur_variance": 328,
+          "width": 1200,
+          "height": 760,
+          "brightness": 204,
+          "overexposed_fraction": 0.03
+        },
+        "source": "Synthetic generator ground truth \u2014 seeded fixture, not a live OCR result"
+      }
+    ],
+    "signals": [
+      {
+        "id": "quality",
+        "stage": "Intake",
+        "title": "Capture quality",
+        "detail": "Blur, resolution and lighting are acceptable.",
+        "points": 0,
+        "confidence": 96,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "mrz",
+        "stage": "Extraction",
+        "title": "MRZ check digits",
+        "detail": "All synthetic check digits are consistent. This does not authenticate the document.",
+        "points": 0,
+        "confidence": 100,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          76,
+          94,
+          17
+        ]
+      },
+      {
+        "id": "fields",
+        "stage": "Extraction",
+        "title": "Visible fields vs. MRZ",
+        "detail": "Name, date of birth, document number and expiry are consistent.",
+        "points": 0,
+        "confidence": 94,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          25,
+          16,
+          53,
+          49
+        ]
+      },
+      {
+        "id": "font",
+        "stage": "Forensics",
+        "title": "Font / spacing consistency",
+        "detail": "No injected spacing anomaly in this fixture.",
+        "points": 0,
+        "confidence": 79,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          48,
+          17,
+          29,
+          8
+        ]
+      },
+      {
+        "id": "clone",
+        "stage": "Forensics",
+        "title": "Copy-move / ELA proxy",
+        "detail": "No injected compression-residual anomaly in this fixture.",
+        "points": 0,
+        "confidence": 72,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          42,
+          16,
+          40,
+          42
+        ]
+      },
+      {
+        "id": "photo",
+        "stage": "Forensics",
+        "title": "Photo boundary continuity",
+        "detail": "No injected photo boundary anomaly in this fixture.",
+        "points": 0,
+        "confidence": 84,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "security",
+        "stage": "Forensics",
+        "title": "Security-region texture proxy",
+        "detail": "Expected specimen texture is present. This is not hologram verification.",
+        "points": 0,
+        "confidence": 68,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          80,
+          46,
+          15,
+          18
+        ]
+      },
+      {
+        "id": "face",
+        "stage": "Intelligence",
+        "title": "Portrait similarity",
+        "detail": "97% visual embedding similarity; illustrative 80% threshold. Synthetic portrait proxy, not validated biometrics.",
+        "points": 0,
+        "confidence": 75,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": [
+          3,
+          19,
+          20,
+          38
+        ]
+      },
+      {
+        "id": "liveness",
+        "stage": "Intelligence",
+        "title": "Liveness proxy",
+        "detail": "Seeded specimen: no live capture. Liveness is not assessed.",
+        "points": 4,
+        "confidence": 0,
+        "flagged": true,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      },
+      {
+        "id": "identity",
+        "stage": "Intelligence",
+        "title": "Identity consistency",
+        "detail": "No contradictory synthetic identity linked in this fixture.",
+        "points": 0,
+        "confidence": 90,
+        "flagged": false,
+        "method": "Controlled synthetic fixture",
+        "region": null
+      }
+    ],
+    "stages": [
+      {
+        "name": "Intake",
+        "status": "complete",
+        "summary": "Capture quality checked"
+      },
+      {
+        "name": "Extraction",
+        "status": "complete",
+        "summary": "Structured fields and MRZ checks"
+      },
+      {
+        "name": "Forensics",
+        "status": "complete",
+        "summary": "Four independent image proxies"
+      },
+      {
+        "name": "Intelligence",
+        "status": "complete",
+        "summary": "Similarity and identity links"
+      },
+      {
+        "name": "Decision",
+        "status": "complete",
+        "summary": "Human officer review"
+      }
+    ],
+    "faceSimilarity": 97,
+    "portrait": "/demo/portrait-19.png",
+    "comparisonPortrait": "/demo/portrait-19.png",
+    "decision": {
+      "action": "Approve",
+      "officer": "Ananya Sharma",
+      "note": "Reviewed all synthetic evidence; recorded for demo.",
+      "at": "2026-09-01T09:30:00+05:30"
+    },
+    "mode": "Seeded, controlled synthetic scenario",
+    "revision": 1
+  }
+]

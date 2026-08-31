@@ -48,3 +48,6 @@ build/
 *.exe
 .env
 
+
+!.env.example
+*.tsbuildinfo

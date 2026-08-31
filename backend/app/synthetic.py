@@ -96,11 +96,12 @@ def fixture_case(index):
     stages=[{'name':n,'status':('blocked' if j==0 else 'waiting') if sc=='blur' else 'complete','summary':s} for j,(n,s) in enumerate([('Intake','Capture quality checked'),('Extraction','Structured fields and MRZ checks'),('Forensics','Four independent image proxies'),('Intelligence','Similarity and identity links'),('Decision','Human officer review')])]
     return {'id':f'IDS-2026-{20-index:04d}','name':f['name'],'initials':''.join(x[0] for x in f['name'].split()),'scenario':sc,'scenarioLabel':LABELS[sc],'status':status,'risk':risk,'riskLevel':'High' if risk>=50 else 'Medium' if risk>=25 else 'Low','created_at':f'2026-09-{1 if index<3 else 1:02d}T09:{max(0,42-index*2):02d}:00+05:30','documents':[doc],'signals':signals,'stages':stages,'faceSimilarity':face,'portrait':f'/demo/portrait-{index}.png','comparisonPortrait':f'/demo/portrait-{(index+3)%20 if sc=="face" else (0 if sc=="identity" else index)}.png','decision':{'action':'Approve','officer':'Ananya Sharma','note':'Reviewed all synthetic evidence; recorded for demo.','at':'2026-09-01T09:30:00+05:30'} if status=='Decided' else None,'mode':'Seeded, controlled synthetic scenario','revision':1}
 
-def export_demo(directory):
+def export_demo(directory,frontend_data=None):
     import json
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
     cases=[]
     for i in range(20):
         f=specimen(i);f['image'].save(directory/f'passport-{i}.png');f['portrait'].save(directory/f'portrait-{i}.png');cases.append(fixture_case(i))
     (directory/'cases.json').write_text(json.dumps(cases,indent=2),encoding='utf8')
+    if frontend_data:Path(frontend_data).write_text(json.dumps(cases,indent=2),encoding='utf8')
     return cases

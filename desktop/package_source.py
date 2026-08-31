@@ -8,6 +8,6 @@ with ZipFile(out,'w',ZIP_DEFLATED) as z:
     for f in root.rglob('*'):
         rel=f.relative_to(root)
         if not f.is_file() or any(p in excluded for p in rel.parts):continue
-        if f.name=='.env' or f.suffix in {'.exe','.spec','.key','.db','.pyc'}:continue
+        if f.name=='.env' or f.suffix in {'.exe','.spec','.key','.db','.pyc','.tsbuildinfo'}:continue
         z.write(f,Path('IDShield-AI')/rel)
 print(out)

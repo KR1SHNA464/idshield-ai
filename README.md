@@ -51,7 +51,7 @@ OpenCV → RapidOCR / Paddle-derived ONNX → transparent image descriptors/rule
 
 The initial cases are explicitly **controlled fixtures**: their structured values and scenario signal scores come from the generator, not a claimed live OCR run. Use **New screening → Demo scenarios → Run sample screening** in the Windows/Compose app to run actual OCR and CV on fresh generated pixels. Actual heuristic measurements can differ from the fixture scores. The hosted companion replays fixture stages and says so.
 
-`python -c "from backend.app.synthetic import export_demo; export_demo('public/demo')"` regenerates the public, synthetic-only fixtures.
+`python -c "from backend.app.synthetic import export_demo; export_demo('public/demo','lib/demo-data.json')"` regenerates the public, synthetic-only fixtures and frontend seed module.
 
 ## Two-minute judging script
 

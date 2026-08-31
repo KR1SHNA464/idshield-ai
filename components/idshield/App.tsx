@@ -7,7 +7,7 @@ import { ChartContainer,ChartTooltip,ChartTooltipContent } from '@/components/ui
 import { Select,SelectTrigger,SelectValue,SelectContent,SelectItem } from '@/components/ui/select';
 import { Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription } from '@/components/ui/dialog';
 import { Bar,BarChart,CartesianGrid,XAxis,YAxis } from 'recharts';
-import seed from '@/public/demo/cases.json';
+import seed from '@/lib/demo-data.json';
 import { CaseRecord,AuditRecord,User,api,isNative,login,dateLabel,timeLabel,downloadJson,hash } from '@/lib/idshield';
 import { CaseReview } from './CaseReview';
 import { NewScreening } from './NewScreening';
