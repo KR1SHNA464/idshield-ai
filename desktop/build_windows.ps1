@@ -11,4 +11,4 @@ py -3.12 -m PyInstaller --noconfirm --clean --onefile --windowed --name IDShield
   --add-data "desktop-dist;desktop-dist" --add-data "backend\models;backend\models" `
   --add-binary "tools\cloudflared.exe;." desktop\launcher.py
 Write-Host "Built: $root\dist\IDShield-AI-Windows.exe"
-Write-Host "Source: $root\dist\IDShield-AI-source.zip"
+Write-Host "Source: $root\artifacts\IDShield-AI-source.zip"
