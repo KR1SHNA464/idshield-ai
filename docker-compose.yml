@@ -22,6 +22,7 @@ services:
       IDSHIELD_DATA_DIR: /data
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
       AUTH_SECRET: ${AUTH_SECRET:-}
+      IDSHIELD_ALLOW_TUNNEL: "1"
     volumes:
       - engine-data:/data
     depends_on:
@@ -33,7 +34,7 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
     ports:
-      - "127.0.0.1:8080:80"
+      - "8080:80"
     depends_on:
       - backend
     restart: unless-stopped

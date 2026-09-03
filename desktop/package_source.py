@@ -2,8 +2,8 @@
 from pathlib import Path
 from zipfile import ZipFile,ZIP_DEFLATED
 root=Path(__file__).resolve().parents[1]
-out=root/'public/downloads/IDShield-AI-source.zip';out.parent.mkdir(parents=True,exist_ok=True)
-excluded={'node_modules','.git','.wrangler','dist','desktop-dist','data','__pycache__','.pytest_cache','build','downloads'}
+out=root/'dist/IDShield-AI-source.zip';out.parent.mkdir(parents=True,exist_ok=True)
+excluded={'node_modules','.git','.wrangler','.next','.vinext','dist','desktop-dist','data','__pycache__','.pytest_cache','build','downloads','wheelhouse'}
 with ZipFile(out,'w',ZIP_DEFLATED) as z:
     for f in root.rglob('*'):
         rel=f.relative_to(root)

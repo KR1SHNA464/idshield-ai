@@ -36,10 +36,12 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+/wheelhouse/
 
 # Local engine and packaging artifacts
 data/
 backend/data/
+backend/models/*.onnx
 **/__pycache__/
 **/.pytest_cache/
 desktop-dist/

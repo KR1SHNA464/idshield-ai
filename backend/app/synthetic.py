@@ -90,17 +90,19 @@ def fixture_case(index):
     if sc=='face':flag('face',35,'Portrait similarity is 61%, below the illustrative 80% threshold. This is a controlled fixture, not a calibrated biometric probability.')
     if sc=='identity':flag('identity',28,'The same synthetic portrait is linked to Aarav Mehta (IDS-2026-0020) and Zoya Nair. Names conflict.');flag('fields',26,'A linked synthetic record has a conflicting name.')
     if sc=='blur':flag('quality',25,'Blurred, downsampled capture. Processing pauses at Intake; request recapture before OCR.')
-    risk=min(100,sum(s['points'] for s in signals));status='Decided' if index>=11 else ('In review' if index in (0,2,5,6,7) else 'Pending')
+    risk=min(100,sum(s['points'] for s in signals));status='Decided' if index in (3,4,9) else ('In review' if index in (0,2,5,6,7) else 'Pending')
     if sc=='blur':status='Recapture'
     doc={'id':f'doc-{index}-1','label':'Specimen passport','image':f'/demo/passport-{index}.png','fields':f['fields'],'mrz':checks,'quality':{'ok':sc!='blur','blur_variance':8 if sc=='blur' else 328,'width':1200,'height':760,'brightness':204,'overexposed_fraction':0.03},'source':'Synthetic generator ground truth — seeded fixture, not a live OCR result'}
     stages=[{'name':n,'status':('blocked' if j==0 else 'waiting') if sc=='blur' else 'complete','summary':s} for j,(n,s) in enumerate([('Intake','Capture quality checked'),('Extraction','Structured fields and MRZ checks'),('Forensics','Four independent image proxies'),('Intelligence','Similarity and identity links'),('Decision','Human officer review')])]
-    return {'id':f'IDS-2026-{20-index:04d}','name':f['name'],'initials':''.join(x[0] for x in f['name'].split()),'scenario':sc,'scenarioLabel':LABELS[sc],'status':status,'risk':risk,'riskLevel':'High' if risk>=50 else 'Medium' if risk>=25 else 'Low','created_at':f'2026-09-{1 if index<3 else 1:02d}T09:{max(0,42-index*2):02d}:00+05:30','documents':[doc],'signals':signals,'stages':stages,'faceSimilarity':face,'portrait':f'/demo/portrait-{index}.png','comparisonPortrait':f'/demo/portrait-{(index+3)%20 if sc=="face" else (0 if sc=="identity" else index)}.png','decision':{'action':'Approve','officer':'Ananya Sharma','note':'Reviewed all synthetic evidence; recorded for demo.','at':'2026-09-01T09:30:00+05:30'} if status=='Decided' else None,'mode':'Seeded, controlled synthetic scenario','revision':1}
+    return {'id':f'IDS-2026-{20-index:04d}','name':f['name'],'initials':''.join(x[0] for x in f['name'].split()),'scenario':sc,'scenarioLabel':LABELS[sc],'status':status,'risk':risk,'riskLevel':'High' if risk>=50 else 'Medium' if risk>=25 else 'Low','created_at':f'2026-09-{1 if index<3 else 1:02d}T09:{max(0,42-index*2):02d}:00+05:30','documents':[doc],'signals':signals,'stages':stages,'faceSimilarity':face,'portrait':f'/demo/portrait-{index}.png','comparisonPortrait':f'/demo/portrait-{(index+3)%10 if sc=="face" else (0 if sc=="identity" else index)}.png','decision':{'action':'Approve','officer':'Ananya Sharma','note':'Reviewed all synthetic evidence; recorded for demo.','at':'2026-09-01T09:30:00+05:30'} if status=='Decided' else None,'mode':'Seeded, controlled synthetic scenario','storage':'Seeded synthetic fixture','revision':1}
 
 def export_demo(directory,frontend_data=None):
     import json
     directory=Path(directory);directory.mkdir(parents=True,exist_ok=True)
+    for pattern in ('passport-*.png','portrait-*.png'):
+        for old in directory.glob(pattern):old.unlink()
     cases=[]
-    for i in range(20):
+    for i in range(10):
         f=specimen(i);f['image'].save(directory/f'passport-{i}.png');f['portrait'].save(directory/f'portrait-{i}.png');cases.append(fixture_case(i))
     (directory/'cases.json').write_text(json.dumps(cases,indent=2),encoding='utf8')
     if frontend_data:Path(frontend_data).write_text(json.dumps(cases,indent=2),encoding='utf8')

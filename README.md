@@ -1,107 +1,130 @@
 # IDShield AI — SIH 2026, PS 21688
 
-**SYNTHETIC DATA — DEMO ONLY. NO LIVE GOVERNMENT INTEGRATION.**
+**NO LIVE GOVERNMENT DATABASE INTEGRATION — ALL VERIFICATION RUNS LOCALLY WITHIN THIS APP.**
 
-IDShield AI is an identity/document **decision-support prototype**. It returns a risk score, independent signals, evidence, and explanations. It never issues an automated allow/deny result. Approve, Escalate, Reject and Request Recapture are explicit, attributable human officer actions.
+IDShield AI is a decision-support prototype. It computes a risk score, independent evidence signals, and plain-language explanations from images supplied by a consenting participant. It never produces an automatic allow/deny result. Approve, Escalate, Reject, and Request Recapture are attributable human officer actions.
 
-## Judge handoff
+“Real input” means a document or face image that a team member or consenting volunteer supplies to the local pipeline. It never means checking Aadhaar, passports, watchlists, government records, or an external identity-verification service.
 
-The primary handoff is **IDShield-AI-Windows.exe**, a standalone Windows x64 launcher. Double-click it: a local Python engine starts, the seeded officer dashboard opens in your browser, and the small launcher window stays open while you review. No Python, Docker, terminal, installation, login or external database setup is needed. Close the launcher to stop the server. The binary is an unsigned hackathon prototype. No Mac/Linux binaries were built.
+## Fast judge handoff
 
-The hosted companion is a **clearly labeled browser simulation**: twenty seeded cases, stage replay, evidence inspection, human decisions and a session-only history. It does **not** claim to run Python, OCR on uploaded files, RBAC enforcement or encrypted durable storage. Its state resets on reload. The executable is the full-engine judging alternative explicitly permitted by the brief.
+The primary handoff is `IDShield-AI-Windows.exe`, a double-click Windows x64 launcher. It includes the React interface, Python/FastAPI engine, OCR runtime, OpenCV models, encrypted SQLite store, and Cloudflare Quick Tunnel helper. No Python, Docker, account, installation, or terminal is required.
 
-The complete source and this README are also available through **Demo guide → Download source + Docker Compose** inside the app.
+The launcher displays three access choices:
+
+1. **This computer:** opens automatically on `127.0.0.1`.
+2. **Same Wi-Fi / LAN:** displays and copies `http://<local-IP>:<port>` for nearby phones and laptops. Windows may ask to allow the app through the private-network firewall. Mobile browsers usually require HTTPS for `getUserMedia`, so file/camera-picker upload remains available on LAN while the live webcam button is best used through localhost or the HTTPS tunnel.
+3. **Temporary public HTTPS:** click **Start** in the same launcher. The bundled `cloudflared` process produces a `trycloudflare.com` URL with no account. The screening engine still runs on the host machine, but browser traffic passes through Cloudflare; use this only with informed consent and prefer synthetic specimens for remote judging.
+
+Closing the launcher stops the local server and any tunnel. The executable is an unsigned hackathon prototype for Windows x64.
+
+The hosted Sites companion is deliberately a seeded browser walkthrough. It does not upload documents, run Python OCR, or claim durable security controls. Use the executable or Docker Compose for the genuine pipeline.
 
 ## Architecture and actual stack
 
-```
+```text
 React + TypeScript + Tailwind + shadcn/ui + Recharts
-           │ same-origin JSON/multipart API, signed demo sessions
-FastAPI / Python ── explicit five-stage pipeline
+           │ same-origin JSON/multipart API, signed session ID
+FastAPI / Python ── literal five-stage pipeline
            │ SQLAlchemy ORM + Fernet-encrypted JSON/blob fields
-PostgreSQL (Docker Compose) / SQLite (Windows package)
-           │ encrypted immutable audit snapshots + SHA-256 chain
-OpenCV → RapidOCR / Paddle-derived ONNX → transparent image descriptors/rules
+PostgreSQL (Compose) / SQLite (Windows launcher)
+           │ session memory by default; explicit encrypted save
+OpenCV quality + forensics → RapidOCR → ICAO MRZ arithmetic
+           │
+YuNet face detection → trained SFace 128-D embedding → cosine score
 ```
 
-| Pitch claim | What actually runs | Limit / substitution |
+| Pitch claim | What runs | Honest boundary or substitution |
 |---|---|---|
-| React, TS, Tailwind, shadcn/ui, Recharts | All included; meaningful stacked case-volume and risk-contribution charts | Sites/Vinext hosts the browser companion; a Vite SPA is served by FastAPI in Windows and nginx in Compose |
-| Python, FastAPI, PostgreSQL, SQLAlchemy | FastAPI and SQLAlchemy; PostgreSQL 16 in Compose | Packaged Windows uses SQLite, as permitted in the brief |
-| OpenCV preprocessing | Resolution, Laplacian blur variance, brightness/saturation checks | Conservative heuristics; document backgrounds can trigger false positives |
-| PaddleOCR | RapidOCR 1.4.4 with bundled Paddle-derived ONNX models and ONNX Runtime | Lighter replacement for the full PaddleOCR/PaddlePaddle runtime. Actual visible-field OCR is local and offline; no cloud OCR |
-| MRZ extraction | General OCR transcription + actual pixel glyph matching for the generated fixed-layout specimen | Template-specific glyph recognizer reads image pixels, never metadata or reconstructed check digits. Other layouts may require officer-corrected MRZ text, retained in audit |
-| ArcFace/InsightFace | Transparent, untrained pooled grayscale visual descriptor + cosine similarity | **Not ArcFace, not calibrated biometrics, not a trained face model.** PyTorch pooling in Compose; OpenCV/NumPy pooling in the small Windows package. This substitution is intentional and visible |
-| AI forensics | Four separately reported OpenCV heuristics | Font/component widths; ELA-style JPEG residual ratio; rectangular photo-boundary edges; texture variance in a specimen security region. No proof of fraud, real copy-move detection, hologram or deepfake verification |
-| Liveness | Optional fresh-camera capture with short-lived signed challenge and explicit consent | Simplified proxy only. A challenge is not replay-resistant liveness or proof of camera origin |
-| Explainable risk | Sum of disclosed risk contributions, capped at 100 | Priority bands are not fraud probabilities; confidence values are illustrative and uncalibrated |
-| Cross-document intelligence | Visible-name/DOB consistency; near-identical retained synthetic descriptor under different names | No government lookup or real biometric index; no protected-attribute inference |
+| React, TypeScript, Tailwind, shadcn/ui, Recharts | Responsive officer dashboard, evidence viewer, controls, and risk/activity charts | Sites/Vinext hosts the seeded companion; a Vite SPA is served by FastAPI/nginx for the full engine |
+| Python, FastAPI, PostgreSQL, SQLAlchemy | FastAPI and SQLAlchemy; PostgreSQL 16 in Compose | Packaged Windows uses encrypted SQLite, as permitted by the brief |
+| OpenCV preprocessing | Resolution, Laplacian blur variance, brightness, under/overexposure, and saturation measurements | Conservative heuristics can reject unusual but usable captures |
+| PaddleOCR | RapidOCR 1.4.4 with bundled Paddle-derived ONNX models and ONNX Runtime | Lighter runtime than full PaddleOCR/PaddlePaddle; OCR is actual local pixel inference, never a cloud call |
+| MRZ extraction | General OCR plus pixel glyph recognition for fixed-layout generated specimens; TD1/TD2/TD3 parsing and ICAO check digits | Arbitrary layouts depend on OCR legibility; an officer can correct the MRZ transcription and rerun, with the correction audited |
+| InsightFace/ArcFace + PyTorch | OpenCV Zoo YuNet detection and trained SFace recognition model with 128-D embeddings and cosine similarity | This is the allowed lightweight face-model substitution. Runtime inference uses OpenCV DNN rather than PyTorch. Scores are not calibrated identity probabilities |
+| AI forensics | Four independently reported OpenCV measurements | Font/component variation, JPEG ELA residual ratio, portrait-boundary edge density, and security-region texture. They surface anomalies for review; they do not prove fraud, cloning, hologram validity, or deepfakes |
+| Liveness | Webcam-only signed short-lived capture challenge | Confirms the app’s fresh capture path. It is not production anti-spoofing or replay-resistant liveness |
+| Cross-document intelligence | Name/DOB consistency, document-face consistency, and SFace search across the current session plus explicitly saved cases | No government, watchlist, or external biometric index |
+| Explainable risk | Disclosed additive rule score capped at 100 | Risk bands prioritize human review; they are not fraud probabilities |
 
-## Five concrete stages
+The ONNX model hashes and origins are recorded in `THIRD_PARTY_NOTICES.md`.
 
-1. **Intake:** accepts 1–4 synthetic PNG/JPEG/PDF documents, each ≤8 MB (total ≤25 MB). First PDF page only, with an explicit UI notice; maximum five-page PDF accepted, so provide the ID page separately. OpenCV evaluates minimum 600×350 resolution, blur variance ≥35, extreme lighting and saturation. A failed capture stops the pipeline before OCR and asks for recapture.
-2. **Extraction:** actual local OCR returns structured name, DOB, document number, nationality, issue and expiry where legible. TD1 (3×30), TD2 (2×36), and TD3 (2×44) parsers validate number, DOB, expiry and composite check digits using 7/3/1 weights; TD3 optional-data digit is checked too. Unsupported long-number variants/unrecognized lengths remain unassessed. Visible vs. decoded values are compared without inventing missing fields. Officer correction is explicit and audited.
-3. **Forensics:** four independent signals, confidence, exact measurement/threshold, and template-specific evidence regions. ELA is labeled a compression proxy and has false positives; it is not claimed to establish cloning.
-4. **Intelligence:** optional comparison portrait, simplified liveness signal, cross-document field consistency, synthetic descriptor links and a transparent score. Full-resolution traveller bytes are released after this call. Unavailable signals are explicitly unassessed.
-5. **Decision:** presents the full evidence without an automated disposition. An officer supplies an action and rationale. A version check prevents acting on stale evidence. A supervisor is required to revise a recorded decision. Every outcome retains the exact displayed risk/fields/signals/thumbnails in an encrypted audit snapshot.
+## Five visible stages
 
-## Synthetic scenarios
+1. **Intake:** accepts one to four PNG/JPEG/PDF documents up to 8 MB each. It supports upload and `getUserMedia` document capture. OpenCV checks minimum 600×350 resolution, sharpness, extreme exposure, and glare. A failure stops before OCR and requests recapture. Only the first page of a PDF is analyzed; documents above five pages are rejected.
+2. **Extraction:** actual local OCR produces structured visible fields where legible. TD1, TD2, and TD3 MRZ parsers validate document number, DOB, expiry, optional data, and composite check digits with ICAO 7/3/1 arithmetic. Available visible and MRZ values are compared; missing values stay unassessed.
+3. **Forensics:** font spacing, ELA residual, photo-boundary, and security-region signals each expose the measured value, threshold, confidence, method, and highlighted region. These are lightweight forensic checks, not document-authenticity proof.
+4. **Intelligence:** YuNet detects faces and SFace computes trained 128-D embeddings. The engine reports measured cosine similarity against OpenCV’s 0.363 same-identity reference threshold, checks faces and fields across documents and retained consented cases, and records whether the comparison came through the fresh webcam challenge.
+5. **Decision:** shows the score calculation and every contributing explanation. A human officer records the outcome and rationale. Version checks prevent decisions on stale evidence; only a supervisor can revise a recorded decision.
 
-`backend/app/synthetic.py` generates 20 fictional UTO passport-style images with obvious **SYNTHETIC / SPECIMEN / NOT VALID FOR TRAVEL** markings. Names and numbers are fabricated. Portraits are programmatically illustrated avatars, not real people. The MRZ uses a fictional issuer and specimen optional data; clean specimens deliberately have mathematically valid test check digits, and selected specimens have deliberate checksum failures. Valid arithmetic never makes a specimen a travel document.
+## Live privacy behavior
 
-The initial cases are explicitly **controlled fixtures**: their structured values and scenario signal scores come from the generator, not a claimed live OCR run. Use **New screening → Demo scenarios → Run sample screening** in the Windows/Compose app to run actual OCR and CV on fresh generated pixels. Actual heuristic measurements can differ from the fixture scores. The hosted companion replays fixture stages and says so.
+- **Consent first:** the camera and processing actions remain disabled until the officer confirms every subject consented.
+- **Session memory by default:** live document bytes, face capture, OCR, thumbnails, and embedding are held only in RAM for that signed session. They expire after four idle hours, disappear on launcher shutdown, and are inaccessible from another login session.
+- **Explicit persistence:** **Save this case** copies a reviewed session case to encrypted SQLAlchemy storage. Nothing live is silently persisted.
+- **Deletion:** **Delete case** removes the case row, document bytes, thumbnails, and face embedding. The creator can delete their saved case; supervisors and admins can delete saved cases. Any session owner can delete their session case.
+- **Audit:** session-only events stay in memory. Saved-case decisions append encrypted, immutable audit records chained with SHA-256 and protected by SQL triggers. Audit snapshots retain fields, measurements, explanations, and the officer outcome while deliberately excluding images and embeddings, so case deletion removes those sensitive assets.
+- **At-rest encryption:** Fernet authenticated encryption protects saved case payloads, document bytes, and audit payloads. Keys are generated in the private app data directory unless environment secrets are supplied. This is prototype field-level protection, not a hardware-backed production KMS.
+- **RBAC:** every data/action endpoint requires a signed officer, supervisor, or admin token. Officer and supervisor can screen and decide; supervisor can revise decisions and verify the audit chain; admin can manage deletion/purge and verify the chain but cannot decide.
 
-`python -c "from backend.app.synthetic import export_demo; export_demo('public/demo','lib/demo-data.json')"` regenerates the public, synthetic-only fixtures and frontend seed module.
+Do not use a real person’s document or face without their knowledge and explicit permission. For a public tunnel demonstration, synthetic fixtures are the safest choice.
+
+## Seeded edge cases
+
+`backend/app/synthetic.py` generates 10 fictional UTO passport-style fixtures marked **SYNTHETIC / SPECIMEN / NOT VALID FOR TRAVEL**. They cover a valid specimen, bad MRZ check digits, visible/MRZ mismatch, photo boundary edit, ELA/font anomaly, blank security region, low controlled portrait similarity, repeated generated portrait under different names, and blur recapture.
+
+Seeded dashboard values are controlled ground truth for a reliable judging walkthrough. **New screening → Seeded scenarios** in the local engine generates fresh pixels and runs the actual OCR/CV pipeline; measured heuristic outputs can differ from the fixture labels. Seeded face scores are labeled fixture values because the illustrated avatars are not human faces.
+
+Regenerate the data with:
+
+```powershell
+py -3.12 -c "from backend.app.synthetic import export_demo; export_demo('public/demo','lib/demo-data.json')"
+```
 
 ## Two-minute judging script
 
-| Time | What to show |
+| Time | Demonstration |
 |---|---|
-| 00:00 | Open **Mira Sen, IDS-2026-0019**. Show consistent fields and valid synthetic MRZ check digits. Explain that low risk is not automatic approval. |
-| 00:25 | Open **Ishan Roy, IDS-2026-0014**. Extraction → expand document-number and composite checks; show expected vs. observed digits and the checksum input. |
-| 00:45 | Open **Tara Bose, IDS-2026-0013**. Expand font/spacing, ELA and photo-boundary signals; the viewer highlights each region. State the heuristic limitations. |
-| 01:05 | Open **Dev Khanna, IDS-2026-0018**. Intelligence shows the controlled 61% fixture score against the illustrative 80% threshold. Identity insights shows the same generated portrait under Aarav Mehta and Zoya Nair. |
-| 01:25 | Return to Mira Sen. Decision → choose Approve/Escalate/Reject/Request Recapture and enter a rationale. This is the human officer's choice. |
-| 01:45 | Audit trail → open the newest event and inspect the evidence snapshot. In the native app, switch to supervisor under Configuration to verify the audit chain. |
+| 00:00 | Double-click the launcher. Point out localhost, same-Wi-Fi, and temporary HTTPS links plus the no-government-database disclaimer. |
+| 00:15 | Choose **New screening → Live screening**. Confirm consent, upload or webcam-capture a document, and make a fresh traveller webcam capture. |
+| 00:35 | Watch the five-stage stepper. Open Extraction for OCR/MRZ evidence, Forensics for measured pixel signals, and Intelligence for the freshly computed SFace score. |
+| 00:55 | Show that the live case says **Session only**. Record one officer action and rationale; explain that the system never chooses it. Use **Save this case** only if the volunteer agreed, or **Delete case** to erase it. |
+| 01:15 | Open **Ishan Roy, IDS-2026-0014**. Expand document-number and composite check digits to show actual expected/observed arithmetic. |
+| 01:35 | Open **Tara Bose, IDS-2026-0013**. Expand font, ELA, and photo-boundary signals and show highlighted evidence regions. |
+| 01:50 | Open **Audit trail**. Show who acted, what evidence was available, and that media/embedding copies are excluded from immutable records. |
 
-For the live core-engine demonstration, run a consistent sample or upload `public/demo/passport-1.png`, then run `passport-8.png` to demonstrate blur gating. Multiple synthetic documents can be uploaded in one case to test consistency.
+If a real ID is unsuitable for the judging room, use a consenting team member’s college ID or a generated specimen. The live pipeline accepts non-MRZ IDs; unavailable MRZ evidence is explicitly unassessed rather than invented.
 
-## Local developer setup
+## Run from source
 
-With Docker Desktop installed, from this source directory run:
+With Docker Desktop installed:
+
+```powershell
+.\start-demo.ps1
+```
+
+Or run `start-demo.bat`. The script builds frontend, backend, and PostgreSQL, exposes port 8080 to the LAN, prints the LAN link, and starts a Quick Tunnel if `cloudflared` is available. A manual one-line fallback is printed if it is absent. Stop the tunnel with Ctrl+C; run `docker compose down` when finished if the fallback path was used.
+
+Direct Compose remains available:
 
 ```sh
 docker compose up --build
 ```
 
-Open `http://localhost:8080`. Frontend, Python backend and PostgreSQL run behind one local origin. The seeded officer session signs in automatically. The Compose port binds to loopback by default; this HTTP loopback is a local desktop/development connection, not an internet deployment. Any shared cloud deployment **must terminate HTTPS** at its ingress and use separate secrets; do not expose this demo's auto-login accounts to sensitive data. The hosted Sites browser companion uses HTTPS.
+Open `http://localhost:8080`. Compose was not available in the authoring environment, so its files were inspected but not runtime-tested here. The same FastAPI tests run with SQLite; PostgreSQL models, encrypted fields, triggers, and advisory locking remain in the Compose path.
 
-Docker was not available in the authoring environment, so the Compose configuration was supplied but not executed there. The Python engine was verified against SQLite (including API and actual OCR tests); PostgreSQL-specific triggers/advisory locks are implemented but need a Compose runtime check before a judging deployment.
+For Python development, install `backend/requirements.txt`, run `py -3.12 backend/models/download_models.py` to fetch the checksum-pinned official OpenCV models, build the SPA with `npm run build:desktop`, copy `desktop-dist/desktop/index.html` to `desktop-dist/index.html`, set `IDSHIELD_DATA_DIR`, and run `py -3.12 desktop/launcher.py`. Docker performs the verified model download during its image build. `desktop/build_windows.ps1` performs the same model check and reproduces the packaged launcher when `tools/cloudflared.exe` is present.
 
-Python development: install `backend/requirements.txt`, set `IDSHIELD_DATA_DIR` to a private data directory, build the SPA with `npx vite build --config vite.desktop.config.ts`, copy `desktop-dist/desktop/index.html` to `desktop-dist/index.html`, then run `python desktop/launcher.py`. Install CPU PyTorch separately to use its pooling implementation. The small Windows build intentionally omits it and uses the documented NumPy/OpenCV equivalent.
+## Scoring and tests
 
-## Security, roles and privacy
+Quality failure +25 and stops processing; failed MRZ +30; unreadable MRZ +12; field mismatch +26 (incomplete fields +8); font/spacing +14; ELA +12; photo boundary +20; security texture +12; portrait mismatch +35 (unassessed comparison +6); identity conflict +28; liveness unassessed +4. Contributions are visible, summed, and capped at 100. Low is 0–24, Medium 25–49, High 50–100.
 
-- **RBAC:** signed expiring sessions. All data and mutation endpoints enforce explicit role dependencies. `/api/session` is the intentionally public authentication entry point; static synthetic assets are public. Officer: read/screen/initial decisions; supervisor: these plus revision/chain verification; admin: read/chain verification/expiry purge, no decisions. Credentials are `officer-demo`, `supervisor-demo`, `admin-demo`; the UI pre-fills them for synthetic judging only. Environment overrides are supported in the backend, but the role picker intentionally uses demo defaults.
-- **At rest:** Fernet-authenticated encryption protects all case payloads (including fields/descriptors/evidence), document bytes and audit snapshots. IDs, action type, timestamp and case status are non-sensitive indexing metadata. Keys come from `ENCRYPTION_KEY`/`AUTH_SECRET`; local fallback keys are generated into the data directory, never embedded in source or binary. File permissions are restricted where supported. Neighboring demo key files are **not** hardware-backed protection against an attacker controlling the machine; use OS vault/KMS-backed secrets for a real system.
-- **Append-only design:** SQL triggers reject audit UPDATE/DELETE, plus full immutable snapshots and a SHA-256 chain. PostgreSQL advisory transaction locks serialize audit appends; the desktop single process uses a reentrant lock. Chain verification detects changes relative to the retained chain; this is not external notarization, and a database administrator with keys is outside this demo threat model.
-- **Minimization:** originals are encrypted, downsampled to at most 1800px for analysis, and assigned a 24-hour expiry. Admin **Purge expired originals** deletes expired source bytes and appends an audit event. Purge is manual in this prototype. Traveller originals stay in memory for analysis and are discarded afterward. Only small comparison/document thumbnails and descriptors remain in encrypted case/audit snapshots. Retained audit thumbnails are intentionally low-resolution evidence; no claim of indefinite full-resolution retention is made.
-- **Windows data:** stored under the user's local application-data `IDShieldAI` directory by default; no raw documents are written as unencrypted temp files. `launcher.log` contains operational messages, not document OCR or personal fields. No analytics or third-party identity lookup is included.
-- **Request boundaries:** same-origin API requests, loopback desktop server, upload byte/pixel/page limits, MIME decoding, no arbitrary remote fetches, no CORS wildcard, and explicit synthetic/consent confirmation. The prototype is not production hardened (no enterprise identity provider, formal penetration test or document authenticity validation).
-- **Offline direction:** OCR models and data are bundled, identifiers are generated locally, and the pipeline uses repository-independent SQLAlchemy models. The desktop works without a cloud API. Offline synchronization is deliberately not built.
+`backend/tests/test_engine.py` covers ICAO check digits, corrupt lines, actual local OCR, PDF decoding, blur gating, authentication/RBAC, encrypted database values, immutable audit triggers, stale-decision protection, audit-chain verification, consent/type checks, session isolation, opt-in save, media-minimized audit snapshots, real deletion, and a complete five-stage upload.
 
-## Scoring
+The packaging smoke test starts the frozen application, signs in, confirms the 10 seeded cases and SFace assets, runs a generated specimen through all five stages, verifies OCR/MRZ output, and checks that the dashboard is served.
 
-Quality failure +25 and stops downstream work; MRZ failure +30; unreadable MRZ +12; visible-field mismatch +26 (incomplete fields +8); font/spacing +14; ELA proxy +12; photo boundary +20; security texture +12; portrait mismatch +35 (missing comparison +6); identity conflict +28; liveness unassessed +4. Contributions are per document where relevant and capped at 100. Low 0–24, Medium 25–49, High 50–100. All thresholds and contributions are evidence-visible and uncalibrated.
+## Explicit non-goals
 
-## Tests and packaging
+No government API or database, Aadhaar/passport lookup, autonomous admission decision, production liveness, calibrated biometric identity claim, production copy-move/deepfake/hologram/security-thread validation, nonconsensual capture, or offline synchronization is implemented or claimed. Permanent cloud hosting is optional future work; the packaged LAN and temporary tunnel links cover the judging handoff.
 
-`backend/tests/test_engine.py` checks ICAO arithmetic, corrupt MRZ rejection, actual OCR and PDF decoding, blur gating, role enforcement, encrypted database contents, append-only triggers, stale-decision protection, audit-chain verification, consent/type checks and a full upload pipeline. Use a fresh isolated `IDSHIELD_DATA_DIR` when running `pytest backend/tests -q`.
-
-The Windows package is built with PyInstaller's one-file/windowed mode and includes the React SPA, FastAPI, OpenCV, RapidOCR models/ONNX runtime, SQLite, and source archive. A packaged `--smoke-test` checks its own startup, seeded authenticated API and served dashboard. No Mac/Linux artifacts are provided.
-
-## References and explicit non-goals
-
-MRZ algorithm: [ICAO Doc 9303, Part 3](https://www.icao.int/publications/documents/9303_p3_cons_en.pdf) and [Part 4](https://www.icao.int/publications/documents/9303_p4_cons_en.pdf). OCR substitution: [RapidOCR project](https://github.com/RapidAI/RapidOCR). Packaging: [PyInstaller documentation](https://pyinstaller.org/en/stable/usage.html).
-
-No government API/database integration, real ID scraping, autonomous entry decision, production liveness, trained biometric identity claim, deepfake verification, hologram/security-thread authentication, offline sync, or nonconsensual biometric capture is implemented or claimed.
+Primary references: [ICAO Doc 9303](https://www.icao.int/publications/pages/publication.aspx?docnum=9303), [OpenCV SFace/YuNet tutorial](https://docs.opencv.org/4.x/d0/dd4/tutorial_dnn_face.html), [OpenCV Zoo](https://github.com/opencv/opencv_zoo), [RapidOCR](https://github.com/RapidAI/RapidOCR), and [Cloudflare Quick Tunnels](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/do-more-with-tunnels/trycloudflare/).

@@ -56,7 +56,8 @@ def test_api_auth_and_rbac(client):
     assert client.get('/api/bootstrap',headers={**officer,'Origin':'https://unrelated.example'}).status_code==403
 def test_seed_count_and_encryption(client):
     data=client.get('/api/bootstrap',headers=auth(client)).json()
-    assert data['human_decision_required'] is True and len(data['data']['cases'])>=20
+    assert data['human_decision_required'] is True and len(data['data']['cases'])>=10
+    assert data['data']['face']=='OpenCV SFace trained embeddings with YuNet detection'
     with engine.connect() as c:
         raw=c.execute(text("SELECT payload FROM cases WHERE id='IDS-2026-0019'")).scalar_one()
         assert 'Mira' not in raw and raw.startswith('gAAAA')
@@ -78,7 +79,8 @@ def test_decision_snapshot_immutability_and_chain(client):
 def test_full_upload_and_recapture_pipeline(client):
     officer=auth(client)
     f=specimen(1)
-    response=client.post('/api/cases',headers=officer,data={'synthetic_confirmed':'true'},files=[('files',('specimen.png',png_bytes(f['image']),'image/png')),('traveller',('portrait.png',png_bytes(f['portrait']),'image/png'))])
+    before=client.get('/api/bootstrap',headers=officer).json()['data']['cases']
+    response=client.post('/api/cases',headers=officer,data={'consent_confirmed':'true'},files=[('files',('specimen.png',png_bytes(f['image']),'image/png')),('traveller',('portrait.png',png_bytes(f['portrait']),'image/png'))])
     assert response.status_code==200,response.text
     cid=response.json()['data']['id'];case=client.get('/api/cases/'+cid,headers=officer).json()['data']
     assert [s['name'] for s in case['stages']]==['Intake','Extraction','Forensics','Intelligence','Decision']
@@ -86,11 +88,23 @@ def test_full_upload_and_recapture_pipeline(client):
     assert all(s['status']=='complete' for s in case['stages'])
     assert case['risk']==sum(s['points'] for s in case['signals']) and not case['decision']
     assert case['documents'][0]['fields']['name']=='MIRA SEN'
-    blur=client.post('/api/cases',headers=officer,data={'synthetic_confirmed':'true'},files=[('files',('blur.png',png_bytes(specimen(8)['image']),'image/png'))])
+    assert case['storage'].startswith('Session only')
+    with Session() as db:assert db.get(Case,cid) is None
+    other_session=auth(client)
+    assert client.get('/api/cases/'+cid,headers=other_session).status_code==404
+    assert client.post('/api/cases/'+cid+'/save',headers=officer).status_code==200
+    with Session() as db:
+        assert db.get(Case,cid) is not None
+        saved_audit=db.scalars(select(Audit).where(Audit.case_id==cid)).all()
+        evidence=saved_audit[-1].payload['evidence']
+        assert saved_audit and 'embedding' not in evidence and all('image' not in document for document in evidence['documents'])
+    assert client.delete('/api/cases/'+cid,headers=officer).json()['data']['deleted']
+    with Session() as db:assert db.get(Case,cid) is None
+    blur=client.post('/api/cases',headers=officer,data={'consent_confirmed':'true'},files=[('files',('blur.png',png_bytes(specimen(8)['image']),'image/png'))])
     bc=client.get('/api/cases/'+blur.json()['data']['id'],headers=officer).json()['data']
     assert bc['status']=='Recapture' and bc['stages'][1]['status']=='waiting'
     assert client.post('/api/cases/'+bc['id']+'/decision',headers=officer,json={'action':'Approve','note':'Cannot approve incomplete evidence','revision':bc['revision']}).status_code==400
 def test_upload_consent_and_type_rejection(client):
     officer=auth(client)
     assert client.post('/api/cases',headers=officer,files=[('files',('x.png',b'not an image','image/png'))]).status_code==400
-    assert client.post('/api/cases',headers=officer,data={'synthetic_confirmed':'true'},files=[('files',('x.png',b'not an image','image/png'))]).status_code==400
+    assert client.post('/api/cases',headers=officer,data={'consent_confirmed':'true'},files=[('files',('x.png',b'not an image','image/png'))]).status_code==400

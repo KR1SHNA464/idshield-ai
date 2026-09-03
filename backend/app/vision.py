@@ -1,13 +1,16 @@
-"""Lightweight proxies, NOT trained fraud/biometric/security-feature classifiers.
-OpenCV quality + actual local OCR with bundled Paddle-derived ONNX models.
-"""
-import io,re,threading
+"""Local OCR, OpenCV quality/forensics and trained SFace portrait embeddings."""
+import io,re,threading,sys,os
+from pathlib import Path
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw
 from .mrz import parse_mrz
 from .synthetic import make_signal, font
-OCR=None;OCR_LOCK=threading.Lock()
+OCR=None;OCR_LOCK=threading.Lock();FACE_LOCK=threading.Lock();FACE_DETECTOR=None;FACE_RECOGNIZER=None
+ROOT=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parents[2]))
+MODEL_DIR=Path(os.environ.get('FACE_MODEL_DIR',ROOT/'backend'/'models'))
+YUNET=MODEL_DIR/'face_detection_yunet_2023mar.onnx'
+SFACE=MODEL_DIR/'face_recognition_sface_2021dec.onnx'
 
 def decode_image(content,filename):
     if content[:4]==b'%PDF':
@@ -97,17 +100,38 @@ def forensics(im):
         out.append(make_signal(id,'Forensics',title,f'Measured {value:.3f}; heuristic threshold {threshold}. '+('Anomaly flagged for officer inspection. ' if flag else 'No threshold crossing. ')+method,points if flag else 0,60,region,'Measured heuristic proxy'))
     return out
 
-def embedding(image):
-    # Fixed image descriptor for SYNTHETIC portrait comparison. No claim of ArcFace accuracy.
-    arr=np.array(image.convert('L').resize((32,32)),dtype=np.float32)/255
-    try:
-        import torch
-        tensor=torch.from_numpy(arr)[None,None]
-        desc=torch.nn.functional.adaptive_avg_pool2d(tensor,(16,16)).flatten().numpy()
-        method='PyTorch pooled visual descriptor (untrained synthetic portrait proxy)'
-    except ImportError:
-        desc=cv2.resize(arr,(16,16)).flatten();method='OpenCV/NumPy pooled visual descriptor (desktop lightweight substitution)'
-    desc=desc-desc.mean();norm=np.linalg.norm(desc)
-    return (desc/max(norm,1e-8)).tolist(),method
+def _face_models(size):
+    global FACE_DETECTOR,FACE_RECOGNIZER
+    if not YUNET.exists() or not SFACE.exists():
+        return None,None
+    if FACE_DETECTOR is None:
+        FACE_DETECTOR=cv2.FaceDetectorYN_create(str(YUNET),'',size,0.75,0.3,5000)
+        FACE_RECOGNIZER=cv2.FaceRecognizerSF_create(str(SFACE),'')
+    FACE_DETECTOR.setInputSize(size)
+    return FACE_DETECTOR,FACE_RECOGNIZER
 
-def compare(a,b):return round(float(np.clip(np.dot(a,b),0,1))*100,1)
+def face_embedding(image):
+    """Return a real SFace embedding for the largest YuNet-detected face."""
+    bgr=cv2.cvtColor(np.array(image.convert('RGB')),cv2.COLOR_RGB2BGR)
+    h,w=bgr.shape[:2]
+    with FACE_LOCK:
+        detector,recognizer=_face_models((w,h))
+        if detector is None:
+            return None,'SFace model files unavailable; portrait similarity not assessed',None
+        _,faces=detector.detect(bgr)
+        if faces is None or not len(faces):
+            return None,'OpenCV YuNet found no usable face; portrait similarity not assessed',None
+        face=max(faces,key=lambda row:float(row[2]*row[3]))
+        aligned=recognizer.alignCrop(bgr,face)
+        vector=recognizer.feature(aligned).flatten().astype(np.float32)
+    vector/=max(float(np.linalg.norm(vector)),1e-8)
+    rgb=cv2.cvtColor(aligned,cv2.COLOR_BGR2RGB)
+    return vector.tolist(),'OpenCV SFace trained embedding with YuNet face detection',Image.fromarray(rgb)
+
+def embedding(image):
+    vector,method,_=face_embedding(image)
+    return vector,method
+
+def compare(a,b):
+    if not a or not b:return None
+    return round(float(np.clip(np.dot(np.asarray(a),np.asarray(b)),0,1))*100,1)

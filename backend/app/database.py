@@ -1,4 +1,4 @@
-import os, json, hashlib, threading
+import os, json, hashlib, threading, copy
 from datetime import datetime, timezone
 from sqlalchemy import create_engine, String, Text, DateTime, event, select, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
@@ -51,6 +51,17 @@ def init_db():
             c.execute(text('CREATE TRIGGER audit_immutable BEFORE UPDATE OR DELETE ON audit_log FOR EACH ROW EXECUTE FUNCTION idshield_audit_immutable()'))
 def hash_record(record):
     return hashlib.sha256(json.dumps(record,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+def minimize_snapshot(snapshot):
+    """Keep decision evidence while excluding stored images and biometric vectors from audit rows."""
+    value=copy.deepcopy(snapshot)
+    if not isinstance(value,dict):return value
+    value.pop('embedding',None)
+    value.pop('portrait',None)
+    value.pop('comparisonPortrait',None)
+    for document in value.get('documents',[]):
+        document.pop('image',None)
+    value['audit_media_retention']='Images and face embeddings are case-linked, not copied into the immutable audit row.'
+    return value
 def append_audit(db,case_id,action,who,snapshot):
     import uuid
     # Single-process lock for desktop; PostgreSQL advisory transaction lock for multiple cloud workers.
@@ -58,7 +69,7 @@ def append_audit(db,case_id,action,who,snapshot):
         if engine.dialect.name=='postgresql': db.execute(text('SELECT pg_advisory_xact_lock(21688)'))
         previous=db.scalar(select(Audit).order_by(Audit.seq.desc()).limit(1))
         previous_hash=previous.record_hash if previous else '0'*64
-        stamp=now(); payload={'officer':who['sub'],'role':who['role'],'evidence':snapshot,'disclaimer':'Decision support. Final outcomes are human-recorded.'}
+        stamp=now(); payload={'officer':who['sub'],'role':who['role'],'evidence':minimize_snapshot(snapshot),'disclaimer':'Decision support. Final outcomes are human-recorded.'}
         seq=previous.seq+1 if previous else 1
         digest=hash_record({'seq':seq,'created_at':stamp,'case_id':case_id,'action':action,'payload':payload,'previous_hash':previous_hash})
         row=Audit(id=str(uuid.uuid4()),seq=seq,created_at=stamp,case_id=case_id,action=action,payload=payload,previous_hash=previous_hash,record_hash=digest)

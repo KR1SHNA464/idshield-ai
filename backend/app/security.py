@@ -1,4 +1,4 @@
-"""Synthetic-demo auth: signed sessions and explicit role allowlists, no government data."""
+"""Signed sessions and explicit role allowlists; no government data connection."""
 import os, json, time, hmac, hashlib, base64, secrets
 from pathlib import Path
 from cryptography.fernet import Fernet
@@ -17,7 +17,7 @@ def secret(name,filename):
     return path.read_bytes().strip()
 FERNET=Fernet(secret('ENCRYPTION_KEY','.encryption.key'))
 AUTH_SECRET=secret('AUTH_SECRET','.auth.key')
-DISCLAIMER='SYNTHETIC DATA — DEMO ONLY. No live government integration. Risk + evidence only; a human officer records the final decision.'
+DISCLAIMER='NO LIVE GOVERNMENT DATABASE INTEGRATION — ALL VERIFICATION RUNS LOCALLY WITHIN THIS APP. Risk + evidence only; a human officer records the final decision.'
 def encrypt(value): return FERNET.encrypt(json.dumps(value,separators=(',',':')).encode()).decode()
 def decrypt(value): return json.loads(FERNET.decrypt(value.encode()))
 def issue_token(user,role,seconds=28800,**extra):
