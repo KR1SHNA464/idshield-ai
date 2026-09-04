@@ -51,7 +51,7 @@ The ONNX model hashes and origins are recorded in `THIRD_PARTY_NOTICES.md`.
 
 ## Five visible stages
 
-1. **Intake:** accepts one to four PNG/JPEG/PDF documents up to 8 MB each. It supports upload and `getUserMedia` document capture. OpenCV checks minimum 600×350 resolution, sharpness, extreme exposure, and glare. A failure stops before OCR and requests recapture. Only the first page of a PDF is analyzed; documents above five pages are rejected.
+1. **Intake:** accepts two to four PNG/JPEG/PDF documents up to 8 MB each so every live case includes cross-document evidence. It supports upload and `getUserMedia` document capture. OpenCV checks minimum 600×350 resolution, sharpness, extreme exposure, and glare. A failure stops before OCR and requests recapture. Only the first page of a PDF is analyzed; documents above five pages are rejected.
 2. **Extraction:** actual local OCR produces structured visible fields where legible. TD1, TD2, and TD3 MRZ parsers validate document number, DOB, expiry, optional data, and composite check digits with ICAO 7/3/1 arithmetic. Available visible and MRZ values are compared; missing values stay unassessed.
 3. **Forensics:** font spacing, ELA residual, photo-boundary, and security-region signals each expose the measured value, threshold, confidence, method, and highlighted region. These are lightweight forensic checks, not document-authenticity proof.
 4. **Intelligence:** YuNet detects faces and SFace computes trained 128-D embeddings. The engine reports measured cosine similarity against OpenCV’s 0.363 same-identity reference threshold, checks faces and fields across documents and retained consented cases, and records whether the comparison came through the fresh webcam challenge.
