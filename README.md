@@ -10,15 +10,15 @@ IDShield AI is a decision-support prototype. It computes a risk score, independe
 
 The primary handoff is `IDShield-AI-Windows.exe`, a double-click Windows x64 launcher. It includes the React interface, Python/FastAPI engine, OCR runtime, OpenCV models, encrypted SQLite store, and Cloudflare Quick Tunnel helper. No Python, Docker, account, installation, or terminal is required.
 
-The launcher displays three access choices:
+The launcher enforces one running instance and displays three access choices:
 
-1. **This computer:** opens automatically on `127.0.0.1`.
-2. **Same Wi-Fi / LAN:** displays and copies `http://<local-IP>:<port>` for nearby phones and laptops. Windows may ask to allow the app through the private-network firewall. Mobile browsers usually require HTTPS for `getUserMedia`, so file/camera-picker upload remains available on LAN while the live webcam button is best used through localhost or the HTTPS tunnel.
-3. **Temporary public HTTPS:** the launcher automatically creates, copies, and opens a `trycloudflare.com` URL with no connection or paste step. The screening engine still runs on the host machine, but browser traffic passes through Cloudflare; use this only with informed consent and prefer synthetic specimens for remote judging.
+1. **Stable on this computer:** always opens `http://127.0.0.1:8765` automatically. Reopening the executable focuses this same dashboard instead of starting a duplicate engine.
+2. **Same Wi-Fi / LAN:** displays and copies `http://<local-IP>:8765` for nearby phones and laptops. Windows may ask to allow the app through the private-network firewall. Mobile browsers usually require HTTPS for `getUserMedia`, so file/camera-picker upload remains available on LAN while the live webcam button is best used through localhost or the HTTPS tunnel.
+3. **Mobile HTTPS:** the launcher automatically creates and copies a temporary `lhr.life` URL through the Windows OpenSSH client and localhost.run, with bundled Cloudflare Quick Tunnel as fallback. A background health check replaces an expired link. These no-account hostnames cannot be bookmarked across launcher sessions. The screening engine still runs on the host machine, while browser traffic passes through the selected tunnel provider; use this only with informed consent and prefer synthetic specimens for remote judging.
 
 Closing the launcher stops the local server and any tunnel. The executable is an unsigned hackathon prototype for Windows x64.
 
-For direct live screening, use the temporary page that the Windows launcher opens automatically. It serves the UI and Python engine together, so no engine-link connection is required. The separate hosted Sites page can still connect manually when needed, but it has no Python backend by itself.
+For reliable direct screening on the Windows computer, use the fixed local page that the launcher opens automatically. It serves the UI and Python engine together, so no engine-link connection is required. The public URL is for remote devices and changes whenever the Quick Tunnel is replaced. The separate hosted Sites page can still connect manually when needed, but it has no Python backend by itself.
 
 ## Architecture and actual stack
 
