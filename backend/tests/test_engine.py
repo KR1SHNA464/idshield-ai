@@ -4,11 +4,13 @@ encryption, optimistic decisions, append-only audit and full PNG/PDF intake.
 import os,io,base64,copy
 from pathlib import Path
 import pytest
+from PIL import Image,ImageDraw
 from sqlalchemy import text,select
 from fastapi.testclient import TestClient
 from backend.app.mrz import check_digit,parse_mrz,make_td3
-from backend.app.synthetic import specimen,png_bytes
+from backend.app.synthetic import specimen,png_bytes,font
 from backend.app.vision import quality,extract,pairwise_document_difference
+from backend.app.pipeline import cross_document_field_conflicts
 from backend.app.main import app
 from backend.app.database import engine,Session,Case,Audit
 
@@ -35,6 +37,21 @@ def test_actual_ocr_and_quality_gate():
     assert result['fields']['expiry']=='310314'
     assert result['mrz']['format']=='TD3' and all(c['valid'] for c in result['mrz']['checks'])
     assert not quality(specimen(8)['image'])['ok']
+
+def test_pan_ocr_and_cross_document_identity_conflict():
+    def pan(name,number,dob):
+        image=Image.new('RGB',(1200,760),'#f4d8bd');draw=ImageDraw.Draw(image);y=35
+        for value,size in [('INCOME TAX DEPARTMENT',38),('GOVT. OF INDIA',32),('PERMANENT ACCOUNT NUMBER CARD',27),('Name',24),(name,38),("Father\'s Name",24),('SAMPLE FATHER',32),('Date of Birth',24),(dob,32),(number,42)]:
+            draw.text((70,y),value,font=font(size,True),fill='#191919');y+=size+24
+        return extract(image)
+    first=pan('RAHUL SHARMA','ABCDE1234F','12/08/1992');second=pan('PRIYA VERMA','PQRSX9876K','04/11/1994')
+    assert first['document_type']==second['document_type']=='PAN'
+    conflicts,comparable=cross_document_field_conflicts([first,second])
+    assert comparable and any('Names differ' in conflict for conflict in conflicts)
+    assert any('Dates of birth differ' in conflict for conflict in conflicts)
+    assert any('PAN numbers differ' in conflict for conflict in conflicts)
+    same_person=[first,{'document_type':'AADHAAR','fields':{'name':'Rahul Sharma','dob':'1992-08-12','document_number':'123456789012'},'mrz':{'fields':{}}}]
+    assert cross_document_field_conflicts(same_person)==([],True)
 def test_pdf_decode():
     from backend.app.vision import decode_image
     b=io.BytesIO();specimen(1)['image'].save(b,format='PDF')

@@ -64,11 +64,11 @@ def extract(im,corrected_mrz=None):
             lines.append(line)
         if max(errors)<0.07:template_lines=lines
     parsed=parse_mrz(corrected_mrz or template_lines or candidates)
-    fields={};labels={'NAME':'name','DATE OF BIRTH':'dob','DOCUMENT NO':'document_number','NATIONALITY':'nationality','DATE OF ISSUE':'issue','DATE OF EXPIRY':'expiry'}
+    fields={};labels=[('DATEOFBIRTH','dob'),('DOCUMENTNO','document_number'),('NATIONALITY','nationality'),('DATEOFISSUE','issue'),('DATEOFEXPIRY','expiry'),('DOB','dob'),('NAME','name')]
     # Pair same-line values by OCR bounding-box center; retain unknown fields rather than inventing them.
     for box,txt,conf in result:
         normalized=re.sub(r'[^A-Z]','',txt.upper())
-        key=next((v for label,v in labels.items() if re.sub(r'[^A-Z]','',label) in normalized),None)
+        key=next((value for label,value in labels if normalized.startswith(label)),None)
         if not key:continue
         value=txt.split(':',1)[1].strip() if ':' in txt else ''
         if not value:
@@ -76,9 +76,45 @@ def extract(im,corrected_mrz=None):
             options=[(min(p[0] for p in b),t) for b,t,c in result if min(p[0] for p in b)>right and abs(np.mean(np.array(b)[:,1])-y)<35]
             value=sorted(options)[0][1] if options else ''
         if value:fields[key]=value.upper().strip()
+    upper_lines=[re.sub(r'\s+',' ',text.upper()).strip() for text in texts]
+    label_words={'NAME','DOB','DATEOFBIRTH','FATHERSNAME','FATHERNAME','DOCUMENTNO','NATIONALITY','DATEOFISSUE','DATEOFEXPIRY'}
+    def next_value(index,kind):
+        for candidate in upper_lines[index+1:index+5]:
+            compact=re.sub(r'[^A-Z0-9]','',candidate)
+            if not compact or compact in label_words:continue
+            if kind=='name' and re.fullmatch(r'[A-Z][A-Z .]{2,50}',candidate) and not any(word in candidate for word in ('GOVERNMENT','DEPARTMENT','INDIA','INCOME TAX','SIGNATURE','MALE','FEMALE')):return candidate
+            if kind!='name':return candidate
+        return ''
+    # Indian IDs commonly print a label above its value rather than on the same OCR line.
+    for index,line in enumerate(upper_lines):
+        compact=re.sub(r'[^A-Z]','',line)
+        if compact=='NAME' and not fields.get('name'):
+            value=next_value(index,'name')
+            if value:fields['name']=value
+        if compact in {'DATEOFBIRTH','DOB'} and not fields.get('dob'):
+            value=next_value(index,'dob')
+            if value:fields['dob']=value
+    joined=' '.join(upper_lines);compact_joined=re.sub(r'\s+','',joined)
+    pan_match=re.search(r'(?<![A-Z0-9])([A-Z]{5}[0-9]{4}[A-Z])(?![A-Z0-9])',joined) or re.search(r'([A-Z]{5}[0-9]{4}[A-Z])',compact_joined)
+    aadhaar_match=re.search(r'(?<!\d)(\d{4}[ -]?\d{4}[ -]?\d{4})(?!\d)',joined)
+    if parsed.get('format') in {'TD1','TD2','TD3'}:document_type='PASSPORT / MRZ ID'
+    elif pan_match:
+        document_type='PAN';fields.setdefault('document_number',pan_match.group(1))
+    elif aadhaar_match:
+        document_type='AADHAAR';fields.setdefault('document_number',re.sub(r'\D','',aadhaar_match.group(1)))
+    elif re.search(r'DRIV(?:ING|ER).{0,15}LICEN[CS]E|\bDL\s*NO',joined):document_type='DRIVING LICENCE'
+    else:document_type='UNKNOWN'
+    date_match=re.search(r'(?<!\d)([0-3]?\d[/-][01]?\d[/-](?:19|20)?\d{2})(?!\d)',joined)
+    if date_match and not fields.get('dob'):fields['dob']=date_match.group(1)
+    if document_type=='AADHAAR' and not fields.get('name'):
+        dob_index=next((i for i,line in enumerate(upper_lines) if re.search(r'\b(?:DOB|YOB)\b',line)),None)
+        if dob_index is not None:
+            for candidate in reversed(upper_lines[max(0,dob_index-4):dob_index]):
+                if re.fullmatch(r'[A-Z][A-Z .]{2,50}',candidate) and not any(word in candidate for word in ('GOVERNMENT','INDIA','AADHAAR','UNIQUE','IDENTIFICATION')):
+                    fields['name']=candidate;break
     if corrected_mrz:source='RapidOCR visible fields; MRZ text corrected by officer (audited)'
     else:source='RapidOCR visible-field OCR; template-specific pixel glyph MRZ OCR' if template_lines else 'RapidOCR / Paddle-derived ONNX models, actual local image OCR'
-    return {'fields':fields,'mrz':parsed,'ocr_text':raw,'ocr_boxes':[{'box':b,'text':t,'confidence':round(float(c)*100,1)} for b,t,c in result],'source':source}
+    return {'document_type':document_type,'fields':fields,'mrz':parsed,'ocr_text':raw,'ocr_boxes':[{'box':b,'text':t,'confidence':round(float(c)*100,1)} for b,t,c in result],'source':source}
 
 def forensics(im):
     rgb=np.array(im);gray=cv2.cvtColor(rgb,cv2.COLOR_RGB2GRAY);h,w=gray.shape

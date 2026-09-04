@@ -1,4 +1,4 @@
-import time,base64,copy
+import time,base64,copy,re,difflib
 from sqlalchemy import select
 from .database import Session,Case,Document,append_audit
 from .synthetic import make_signal,data_uri
@@ -7,6 +7,47 @@ from . import session_store
 
 STAGES=['Intake','Extraction','Forensics','Intelligence','Decision']
 SFACE_COSINE_THRESHOLD=36.3
+
+def _identity_fields(document):
+    fields={key:value for key,value in document.get('mrz',{}).get('fields',{}).items() if value}
+    fields.update({key:value for key,value in document.get('fields',{}).items() if value})
+    return fields
+
+def _normalized_name(value):
+    return re.sub(r'[^A-Z0-9]','',str(value or '').upper())
+
+def _name_similarity(left,right):
+    a=_normalized_name(left);b=_normalized_name(right)
+    if not a or not b:return 1.0
+    ordered=difflib.SequenceMatcher(None,a,b).ratio()
+    sorted_a=''.join(sorted(re.findall(r'[A-Z0-9]+',str(left).upper())))
+    sorted_b=''.join(sorted(re.findall(r'[A-Z0-9]+',str(right).upper())))
+    return max(ordered,difflib.SequenceMatcher(None,sorted_a,sorted_b).ratio())
+
+def _normalized_dob(value):
+    digits=re.sub(r'\D','',str(value or ''))
+    if len(digits)==6:return digits
+    if len(digits)==8:
+        year_first=1900<=int(digits[:4])<=2100
+        return digits[2:4]+digits[4:6]+digits[6:8] if year_first else digits[6:8]+digits[2:4]+digits[:2]
+    return digits
+
+def cross_document_field_conflicts(documents):
+    evidence=[_identity_fields(document) for document in documents];conflicts=[];comparable=False
+    for i in range(len(evidence)):
+        for j in range(i+1,len(evidence)):
+            left=evidence[i];right=evidence[j]
+            if left.get('name') and right.get('name'):
+                comparable=True
+                if _name_similarity(left['name'],right['name'])<.78:conflicts.append(f"Names differ: Document {i+1} '{left['name']}' vs Document {j+1} '{right['name']}'.")
+            if left.get('dob') and right.get('dob'):
+                comparable=True
+                if _normalized_dob(left['dob'])!=_normalized_dob(right['dob']):conflicts.append(f"Dates of birth differ: Document {i+1} '{left['dob']}' vs Document {j+1} '{right['dob']}'.")
+            left_type=documents[i].get('document_type','UNKNOWN');right_type=documents[j].get('document_type','UNKNOWN')
+            if left_type==right_type and left_type!='UNKNOWN' and left.get('document_number') and right.get('document_number'):
+                comparable=True;left_number=re.sub(r'[^A-Z0-9]','',str(left['document_number']).upper());right_number=re.sub(r'[^A-Z0-9]','',str(right['document_number']).upper())
+                if left_number!=right_number:conflicts.append(f"{left_type} numbers differ between Document {i+1} and Document {j+1}.")
+    return conflicts,comparable
 
 def persist(case_id,payload,status=None,ephemeral=False):
     if ephemeral:
@@ -92,7 +133,7 @@ def run_pipeline(case_id,who,traveller=None,capture_fresh=False,corrected_mrz=No
                 reference_fields=p['documents'][0]['fields'] or p['documents'][0]['mrz']['fields']
                 for i,im in enumerate(images[1:],1):
                     candidate_fields=p['documents'][i]['fields'] or p['documents'][i]['mrz']['fields']
-                    same_subject=bool(reference_fields.get('name') and reference_fields.get('name')==candidate_fields.get('name'))
+                    same_subject=bool(reference_fields.get('name') and candidate_fields.get('name') and _name_similarity(reference_fields.get('name'),candidate_fields.get('name'))>=.78)
                     result=pairwise_document_difference(images[0],im);flagged=result['flagged'] and same_subject
                     detail=result['detail']+(' Extracted names match, so the localized difference needs officer review.' if flagged else ' No same-subject edit threshold was crossed.')
                     signal=make_signal(f'pairwise-{i}','Forensics',f'Original/reference vs. Document {i+1}',detail,18 if flagged else 0,75 if result['assessed'] else 0,result['region'],'ORB alignment + measured pixel-difference localization')
@@ -118,20 +159,19 @@ def run_pipeline(case_id,who,traveller=None,capture_fresh=False,corrected_mrz=No
             p['signals'].append(make_signal('face','Intelligence','Portrait similarity',detail,points,confidence,method='Trained OpenCV SFace embedding + cosine similarity'))
             liveness_detail='No traveller portrait was requested, so liveness is not applicable and adds no risk.' if traveller is None else 'A fresh, short-lived webcam capture challenge was supplied. This establishes capture-path freshness but does not defeat sophisticated replay attacks.' if capture_fresh else 'A static traveller image was supplied without a fresh webcam challenge. Liveness is unassessed.'
             p['signals'].append(make_signal('liveness','Intelligence','Liveness proxy',liveness_detail,0 if traveller is None or capture_fresh else 4,30 if capture_fresh else 0,method='Signed fresh-webcam capture challenge'))
-            conflicts=[];names={};dobs={}
-            for d in p['documents']:
-                fields=d['fields'] or d['mrz']['fields'];names[d['id']]=fields.get('name');dobs[d['id']]=fields.get('dob')
-            if len(set(x for x in names.values() if x))>1:conflicts.append('Names differ across submitted documents: '+str(names))
-            if len(set(x for x in dobs.values() if x))>1:conflicts.append('DOB differs across submitted documents: '+str(dobs))
+            conflicts,comparable_identity=cross_document_field_conflicts(p['documents'])
             if len(doc_vectors)>1:
                 for index,vector in enumerate(doc_vectors[1:],2):
                     score=compare(doc_vectors[0],vector)
-                    if score is not None and score<SFACE_COSINE_THRESHOLD:conflicts.append(f'Document 1 and document {index} faces differ ({score}% similarity).')
+                    if score is not None:
+                        comparable_identity=True
+                        if score<SFACE_COSINE_THRESHOLD:conflicts.append(f'Document 1 and document {index} faces differ ({score}% similarity).')
             if emb:
                 for other_case in identity_records(who,case_id):
                     score=compare(emb,other_case.get('embedding'))
                     if score is not None and score>=SFACE_COSINE_THRESHOLD and other_case.get('name','').upper()!=p['name'].upper():conflicts.append(f"A retained face embedding matches a different extracted name: {other_case.get('name')} ({other_case.get('id')}, {score}%).")
-            p['signals'].append(make_signal('identity','Intelligence','Cross-document identity consistency',' '.join(conflicts) or 'No contradictory fields or trained face-embedding relationships were found in available consented/saved cases.',28 if conflicts else 0,80 if emb else 45,method='Exact field checks + SFace embedding query'))
+            identity_detail=' '.join(conflicts) if conflicts else 'No contradictory normalized identity fields or trained face-embedding relationships were found.' if comparable_identity else 'Fewer than two reliable identity fields or faces were extracted, so cross-document identity consistency is unassessed.'
+            p['signals'].append(make_signal('identity','Intelligence','Cross-document identity consistency',identity_detail,50 if conflicts else 0,88 if conflicts else 65 if comparable_identity else 0,method='Normalized OCR/MRZ name, DOB and same-type ID-number checks + SFace embedding query'))
         stage(3,intelligence,'Trained face comparison, capture freshness and identity consistency evaluated')
         def decision():
             p['risk']=min(100,sum(s['points'] for s in p['signals']));p['riskLevel']='High' if p['risk']>=50 else 'Medium' if p['risk']>=25 else 'Low';p['status']='In review';p['duration']=round(time.monotonic()-started,2)
