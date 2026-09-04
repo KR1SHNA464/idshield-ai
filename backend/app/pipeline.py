@@ -65,21 +65,29 @@ def run_pipeline(case_id,who,traveller=None,capture_fresh=False,corrected_mrz=No
         def extraction():
             for i,im in enumerate(images):
                 doc=p['documents'][i];result=extract(im,corrected_mrz if i==0 else None);doc.update(result)
-                checks=result['mrz']['checks'];failures=[x['field'] for x in checks if not x['valid']];missing=bool(result['mrz'].get('error'))
-                p['signals'].append(make_signal('mrz-'+str(i),'Extraction','MRZ check digits',result['mrz'].get('error') or ('Failed check digits: '+', '.join(failures) if failures else 'All available MRZ check digits are internally consistent; authenticity is not established.'),30 if failures else 12 if missing else 0,100 if not missing else 0,[3,76,94,17],'ICAO Doc 9303 arithmetic'))
+                checks=result['mrz']['checks'];failures=[x['field'] for x in checks if not x['valid']];mrz_present=result['mrz'].get('format') in {'TD1','TD2','TD3'}
+                mrz_detail=('No passport-style MRZ was detected. This is normal for PAN, Aadhaar, driving licences, college IDs, and other non-MRZ documents, so no risk points are added.' if not mrz_present else ('Failed check digits: '+', '.join(failures) if failures else 'All available MRZ check digits are internally consistent; authenticity is not established.'))
+                p['signals'].append(make_signal('mrz-'+str(i),'Extraction','MRZ check digits',mrz_detail,30 if failures else 0,100 if mrz_present else 0,[3,76,94,17],'ICAO Doc 9303 arithmetic when an MRZ is present'))
                 mismatches=[];unknown=[]
-                for field in ['name','dob','document_number','nationality','expiry']:
-                    visible=result['fields'].get(field);mrz=result['mrz']['fields'].get(field)
-                    if not visible or not mrz:unknown.append(field)
-                    elif ''.join(visible.upper().split())!=''.join(mrz.upper().split()):mismatches.append(f'{field}: visible {visible} vs MRZ {mrz}')
-                explanation='; '.join(mismatches) or 'Available visible and MRZ fields match.'
-                if unknown:explanation+=' Unreadable or unavailable fields requiring review: '+', '.join(unknown)+'.'
-                p['signals'].append(make_signal('fields-'+str(i),'Extraction','Visible fields vs. MRZ',explanation,26 if mismatches else 8 if unknown else 0,90,[25,16,53,49],'Measured OCR field comparison'))
+                if mrz_present:
+                    for field in ['name','dob','document_number','nationality','expiry']:
+                        visible=result['fields'].get(field);mrz=result['mrz']['fields'].get(field)
+                        if not visible or not mrz:unknown.append(field)
+                        elif ''.join(visible.upper().split())!=''.join(mrz.upper().split()):mismatches.append(f'{field}: visible {visible} vs MRZ {mrz}')
+                    explanation='; '.join(mismatches) or 'Available visible and MRZ fields match.'
+                    if unknown:explanation+=' Unreadable or unavailable fields requiring review: '+', '.join(unknown)+'.'
+                    field_points=26 if mismatches else 8 if unknown else 0;field_confidence=90
+                else:explanation='Visible fields were extracted where legible. MRZ comparison is not applicable to this document type.';field_points=0;field_confidence=0
+                p['signals'].append(make_signal('fields-'+str(i),'Extraction','Visible fields vs. MRZ',explanation,field_points,field_confidence,[25,16,53,49],'Measured OCR field comparison when both sources exist'))
             p['name']=p['documents'][0]['fields'].get('name') or p['documents'][0]['mrz']['fields'].get('name') or 'Unresolved identity';p['initials']=''.join(x[0] for x in p['name'].split()[:2]) or 'UI'
         stage(1,extraction,'OCR fields decoded and MRZ check digits validated')
         def forensic():
             for i,im in enumerate(images):
-                for s in forensics(im):s['id']+=f'-{i}';s['documentIndex']=i;p['signals'].append(s)
+                passport_layout=p['documents'][i]['mrz'].get('format') in {'TD1','TD2','TD3'}
+                for s in forensics(im):
+                    if not passport_layout and s['id'] in {'font','photo','security'}:
+                        s['detail']='Measured but not scored: this fixed passport-region heuristic is not applicable to a non-MRZ document such as a PAN card. '+s['detail'];s['points']=0;s['flagged']=False;s['confidence']=0
+                    s['id']+=f'-{i}';s['documentIndex']=i;p['signals'].append(s)
             if len(images)>1:
                 reference_fields=p['documents'][0]['fields'] or p['documents'][0]['mrz']['fields']
                 for i,im in enumerate(images[1:],1):
@@ -104,10 +112,12 @@ def run_pipeline(case_id,who,traveller=None,capture_fresh=False,corrected_mrz=No
                 other,traveller_method,other_crop=face_embedding(traveller);similarity=compare(emb,other)
                 if other_crop is not None:p['comparisonPortrait']=data_uri(other_crop)
             p['faceSimilarity']=similarity;method='; '.join(dict.fromkeys(methods+[traveller_method]))
-            if similarity is None:detail='A usable face was not found in both the document and comparison capture. Portrait similarity is unassessed. '+method;points=6;confidence=0
+            if traveller is None:detail='No traveller portrait was requested. Portrait similarity is unassessed and does not add risk.';points=0;confidence=0
+            elif similarity is None:detail='A usable face was not found in both the document and comparison capture. Portrait similarity is unassessed and does not add risk. '+method;points=0;confidence=0
             else:detail=f'{similarity}% SFace cosine similarity; OpenCV model threshold {SFACE_COSINE_THRESHOLD}%. This is a measured prototype score, not a calibrated identity probability.';points=35 if similarity<SFACE_COSINE_THRESHOLD else 0;confidence=80
             p['signals'].append(make_signal('face','Intelligence','Portrait similarity',detail,points,confidence,method='Trained OpenCV SFace embedding + cosine similarity'))
-            p['signals'].append(make_signal('liveness','Intelligence','Liveness proxy','A fresh, short-lived webcam capture challenge was supplied. This establishes capture-path freshness but does not defeat sophisticated replay attacks.' if capture_fresh else 'No fresh webcam challenge. Liveness is unassessed; an uploaded static image is not evidence of liveness.',0 if capture_fresh else 4,30 if capture_fresh else 0,method='Signed fresh-webcam capture challenge'))
+            liveness_detail='No traveller portrait was requested, so liveness is not applicable and adds no risk.' if traveller is None else 'A fresh, short-lived webcam capture challenge was supplied. This establishes capture-path freshness but does not defeat sophisticated replay attacks.' if capture_fresh else 'A static traveller image was supplied without a fresh webcam challenge. Liveness is unassessed.'
+            p['signals'].append(make_signal('liveness','Intelligence','Liveness proxy',liveness_detail,0 if traveller is None or capture_fresh else 4,30 if capture_fresh else 0,method='Signed fresh-webcam capture challenge'))
             conflicts=[];names={};dobs={}
             for d in p['documents']:
                 fields=d['fields'] or d['mrz']['fields'];names[d['id']]=fields.get('name');dobs[d['id']]=fields.get('dob')

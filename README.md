@@ -117,7 +117,7 @@ For Python development, install `backend/requirements.txt`, run `py -3.12 backen
 
 ## Scoring and tests
 
-Quality failure +25 and stops processing; failed MRZ +30; unreadable MRZ +12; field mismatch +26 (incomplete fields +8); font/spacing +14; ELA +12; photo boundary +20; security texture +12; portrait mismatch +35 (unassessed comparison +6); identity conflict +28; liveness unassessed +4. Contributions are visible, summed, and capped at 100. Low is 0–24, Medium 25–49, High 50–100.
+Quality failure +25 and stops processing; failed check digits on a detected MRZ +30; visible/MRZ field mismatch +26 (incomplete comparable fields +8); passport-only font/spacing +14; ELA +12; passport-only photo boundary +20; passport-only security texture +12; localized original-versus-copy pixel change +18; measured portrait mismatch +35; identity conflict +28; and a static comparison portrait without a fresh webcam challenge +4. Missing MRZ and missing optional face input add zero risk, which prevents PAN/Aadhaar/college IDs from being penalized for passport-only evidence. Contributions are visible, summed, and capped at 100. Low is 0–24, Medium 25–49, High 50–100.
 
 `backend/tests/test_engine.py` covers ICAO check digits, corrupt lines, actual local OCR, PDF decoding, blur gating, authentication/RBAC, encrypted database values, immutable audit triggers, stale-decision protection, audit-chain verification, consent/type checks, session isolation, opt-in save, media-minimized audit snapshots, real deletion, and a complete five-stage upload.
 
