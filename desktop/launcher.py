@@ -19,13 +19,16 @@ def launch():
     os.environ.setdefault('IDSHIELD_ALLOW_TUNNEL','1')
     data=Path(os.environ['IDSHIELD_DATA_DIR']);data.mkdir(parents=True,exist_ok=True)
     logging.basicConfig(filename=data/'launcher.log',level=logging.INFO,format='%(asctime)s %(levelname)s %(message)s')
-    smoke_test='--smoke-test' in sys.argv;stable_port=8765;mutex_handle=None
+    smoke_test='--smoke-test' in sys.argv;stable_port=8765;mutex_handle=None;window_title='IDShield AI · Stable live screening launcher'
     if not smoke_test and os.name=='nt':
         kernel32=ctypes.WinDLL('kernel32',use_last_error=True);kernel32.CreateMutexW.argtypes=[ctypes.c_void_p,ctypes.c_bool,ctypes.c_wchar_p];kernel32.CreateMutexW.restype=ctypes.c_void_p;kernel32.CloseHandle.argtypes=[ctypes.c_void_p]
         mutex_handle=kernel32.CreateMutexW(None,False,'Local\\IDShieldAI_LiveScreening_8765')
         if not mutex_handle:raise ctypes.WinError(ctypes.get_last_error())
         if ctypes.get_last_error()==183:
             kernel32.CloseHandle(mutex_handle);mutex_handle=None
+            user32=ctypes.WinDLL('user32',use_last_error=True);user32.FindWindowW.argtypes=[ctypes.c_wchar_p,ctypes.c_wchar_p];user32.FindWindowW.restype=ctypes.c_void_p
+            existing_window=user32.FindWindowW(None,window_title)
+            if existing_window:user32.ShowWindow(existing_window,9);user32.SetForegroundWindow(existing_window)
             existing_url=f'http://127.0.0.1:{stable_port}/'
             for _ in range(90):
                 try:
@@ -58,7 +61,7 @@ def launch():
         report={'ok':True,'seeded_cases':len(response['data']['cases']),'database':response['data']['database'],'ocr':response['data']['ocr'],'face':response['data']['face'],'packaged_ocr':'MIRA SEN extracted from generated image','mrz':'All five TD3 check digits validated','pipeline':[s['name']+': '+s['status'] for s in case['stages']]};(data/'smoke-test.json').write_text(json.dumps(report,indent=2),encoding='utf8')
         server.should_exit=True;server_thread.join(10);return
     import tkinter as tk
-    window=tk.Tk();window.title('IDShield AI · Stable live screening launcher');window.geometry('620x510');window.resizable(False,False);window.configure(bg='#102238')
+    window=tk.Tk();window.title(window_title);window.geometry('620x540');window.resizable(False,False);window.configure(bg='#102238')
     tunnel_process=[None];tunnel_url=tk.StringVar(value='Creating optional public HTTPS link…');status=tk.StringVar(value='Stable local dashboard ready · creating remote access');closing=threading.Event();retry_count=[0]
     cloudflared=root/'cloudflared.exe'
     def copy(value):window.clipboard_clear();window.clipboard_append(value);status.set('Link copied')
@@ -125,12 +128,14 @@ def launch():
         row=tk.Frame(links,bg='#172f49');row.pack(fill='x',pady=3);tk.Label(row,text=title,width=17,anchor='w',bg='#172f49',fg='#9cb1c3',font=('Segoe UI',9,'bold')).pack(side='left',padx=10,pady=8);tk.Label(row,text=value,anchor='w',bg='#172f49',fg='#e4eef3',font=('Consolas',9)).pack(side='left',fill='x',expand=True);tk.Button(row,text='Copy',command=lambda u=value:copy(u),bg='#26445f',fg='white',relief='flat').pack(side='right',padx=7)
     tunnel=tk.Frame(window,bg='#172f49');tunnel.pack(fill='x',padx=35,pady=3);tk.Label(tunnel,text='Mobile HTTPS',width=17,anchor='w',bg='#172f49',fg='#9cb1c3',font=('Segoe UI',9,'bold')).pack(side='left',padx=10,pady=8);tk.Label(tunnel,textvariable=tunnel_url,anchor='w',bg='#172f49',fg='#e4eef3',font=('Segoe UI',8),wraplength=285,justify='left').pack(side='left',fill='x',expand=True);tk.Button(tunnel,text='Restart',command=restart_tunnel,bg='#26445f',fg='white',relief='flat').pack(side='right',padx=7)
     public_actions=tk.Frame(window,bg='#102238');public_actions.pack();tk.Button(public_actions,text='Open public link',command=lambda:webbrowser.open(tunnel_url.get()) if tunnel_url.get().startswith('https://') else start_tunnel(),bg='#102238',fg='#62d3bb',relief='flat').pack(side='left',padx=8);tk.Button(public_actions,text='Copy public link',command=lambda:copy(tunnel_url.get()) if tunnel_url.get().startswith('https://') else start_tunnel(),bg='#102238',fg='#62d3bb',relief='flat').pack(side='left',padx=8)
-    tk.Label(window,textvariable=status,bg='#102238',fg='#d6b971',font=('Segoe UI',9)).pack(pady=(6,2));tk.Label(window,text='This PC always uses http://127.0.0.1:8765 — no connection or paste step.\nThe current Mobile HTTPS link works anywhere while this launcher stays open.',bg='#102238',fg='#839caf',font=('Segoe UI',8),justify='center').pack()
-    def close():
+    tk.Label(window,textvariable=status,bg='#102238',fg='#d6b971',font=('Segoe UI',9)).pack(pady=(6,2));tk.Label(window,text='Closing X minimizes this launcher and keeps screening online.\nUse Stop engine and exit only when you want both computer and mobile links to stop.',bg='#102238',fg='#839caf',font=('Segoe UI',8),justify='center').pack()
+    def shutdown():
         closing.set()
         if tunnel_process[0] is not None:tunnel_process[0].terminate()
         server.should_exit=True;window.destroy()
-    window.protocol('WM_DELETE_WINDOW',close);window.after(250,lambda:webbrowser.open(browser_url));window.after(600,start_tunnel);window.mainloop();server_thread.join(8)
+    def minimize():status.set('Engine remains online · click this taskbar icon to restore');window.iconify()
+    tk.Button(window,text='Stop engine and exit',command=shutdown,bg='#102238',fg='#839caf',relief='flat').pack(pady=(3,0))
+    window.protocol('WM_DELETE_WINDOW',minimize);window.after(250,lambda:webbrowser.open(browser_url));window.after(600,start_tunnel);window.mainloop();server_thread.join(8)
     if mutex_handle is not None:kernel32.CloseHandle(mutex_handle)
 
 if __name__=='__main__':
