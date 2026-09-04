@@ -8,7 +8,7 @@ from sqlalchemy import text,select
 from fastapi.testclient import TestClient
 from backend.app.mrz import check_digit,parse_mrz,make_td3
 from backend.app.synthetic import specimen,png_bytes
-from backend.app.vision import quality,extract
+from backend.app.vision import quality,extract,pairwise_document_difference
 from backend.app.main import app
 from backend.app.database import engine,Session,Case,Audit
 
@@ -40,6 +40,14 @@ def test_pdf_decode():
     b=io.BytesIO();specimen(1)['image'].save(b,format='PDF')
     im=decode_image(b.getvalue(),'specimen.pdf');assert im.width>=600
 
+def test_reference_vs_edited_copy_localizes_real_pixel_change():
+    reference=specimen(1)['image'].copy();edited=reference.copy();other=specimen(4)['image']
+    width,height=edited.size;box=(int(.03*width),int(.19*height),int(.23*width),int(.57*height))
+    edited.paste(other.crop(box),box)
+    assert not pairwise_document_difference(reference,reference)['flagged']
+    result=pairwise_document_difference(reference,edited)
+    assert result['assessed'] and result['flagged'] and result['region']
+
 @pytest.fixture(scope='module')
 def client():
     with TestClient(app) as c:yield c
@@ -55,7 +63,7 @@ def test_api_auth_and_rbac(client):
     assert client.post('/api/session',json={'role':'admin','password':'wrong'}).status_code==401
     assert client.get('/api/bootstrap',headers={**officer,'Origin':'https://unrelated.example'}).status_code==403
 def test_seed_count_and_encryption(client):
-    data=client.get('/api/bootstrap',headers=auth(client)).json()
+    data=client.get('/api/bootstrap?include_seeded=true',headers=auth(client)).json()
     assert data['human_decision_required'] is True and len(data['data']['cases'])>=10
     assert data['data']['face']=='OpenCV SFace trained embeddings with YuNet detection'
     with engine.connect() as c:
@@ -80,7 +88,7 @@ def test_full_upload_and_recapture_pipeline(client):
     officer=auth(client)
     f=specimen(1)
     before=client.get('/api/bootstrap',headers=officer).json()['data']['cases']
-    response=client.post('/api/cases',headers=officer,data={'consent_confirmed':'true'},files=[('files',('specimen.png',png_bytes(f['image']),'image/png')),('traveller',('portrait.png',png_bytes(f['portrait']),'image/png'))])
+    response=client.post('/api/cases',headers=officer,data={'consent_confirmed':'true'},files=[('files',('reference.png',png_bytes(f['image']),'image/png')),('files',('comparison.png',png_bytes(f['image']),'image/png')),('traveller',('portrait.png',png_bytes(f['portrait']),'image/png'))])
     assert response.status_code==200,response.text
     cid=response.json()['data']['id'];case=client.get('/api/cases/'+cid,headers=officer).json()['data']
     assert [s['name'] for s in case['stages']]==['Intake','Extraction','Forensics','Intelligence','Decision']
@@ -88,6 +96,7 @@ def test_full_upload_and_recapture_pipeline(client):
     assert all(s['status']=='complete' for s in case['stages'])
     assert case['risk']==sum(s['points'] for s in case['signals']) and not case['decision']
     assert case['documents'][0]['fields']['name']=='MIRA SEN'
+    assert len(case['documents'])==2 and any(s.get('documentIndex')==1 for s in case['signals'])
     assert case['storage'].startswith('Session only')
     with Session() as db:assert db.get(Case,cid) is None
     other_session=auth(client)
@@ -100,7 +109,7 @@ def test_full_upload_and_recapture_pipeline(client):
         assert saved_audit and 'embedding' not in evidence and all('image' not in document for document in evidence['documents'])
     assert client.delete('/api/cases/'+cid,headers=officer).json()['data']['deleted']
     with Session() as db:assert db.get(Case,cid) is None
-    blur=client.post('/api/cases',headers=officer,data={'consent_confirmed':'true'},files=[('files',('blur.png',png_bytes(specimen(8)['image']),'image/png'))])
+    blur=client.post('/api/cases',headers=officer,data={'consent_confirmed':'true'},files=[('files',('blur-1.png',png_bytes(specimen(8)['image']),'image/png')),('files',('blur-2.png',png_bytes(specimen(8)['image']),'image/png'))])
     bc=client.get('/api/cases/'+blur.json()['data']['id'],headers=officer).json()['data']
     assert bc['status']=='Recapture' and bc['stages'][1]['status']=='waiting'
     assert client.post('/api/cases/'+bc['id']+'/decision',headers=officer,json={'action':'Approve','note':'Cannot approve incomplete evidence','revision':bc['revision']}).status_code==400
@@ -108,3 +117,11 @@ def test_upload_consent_and_type_rejection(client):
     officer=auth(client)
     assert client.post('/api/cases',headers=officer,files=[('files',('x.png',b'not an image','image/png'))]).status_code==400
     assert client.post('/api/cases',headers=officer,data={'consent_confirmed':'true'},files=[('files',('x.png',b'not an image','image/png'))]).status_code==400
+
+def test_hosted_ui_cors_for_tunnel(client,monkeypatch):
+    origin='https://idshield-ai-sih2026-21688.vivek420pandia.chatgpt.site'
+    monkeypatch.setenv('IDSHIELD_ALLOW_TUNNEL','1')
+    response=client.options('/api/session',headers={'Origin':origin,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'content-type'})
+    assert response.status_code==204
+    assert response.headers['access-control-allow-origin']==origin
+    assert client.options('/api/session',headers={'Origin':'https://untrusted.example'}).status_code==403

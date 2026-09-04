@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime,timedelta,timezone
 from urllib.parse import urlparse
 from fastapi import FastAPI,Depends,HTTPException,UploadFile,File,Form,BackgroundTasks,Request
-from fastapi.responses import JSONResponse,HTMLResponse
+from fastapi.responses import JSONResponse,HTMLResponse,Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel,Field
 from sqlalchemy import select,delete
@@ -44,15 +44,19 @@ app=FastAPI(title='IDShield AI — local identity risk decision support',descrip
 async def boundaries(request,call_next):
     origin=request.headers.get('origin');host=request.headers.get('host','')
     allowed=not origin or origin in {f'http://{host}',f'https://{host}'}
+    remote_ui_origins={value.strip() for value in os.environ.get('IDSHIELD_REMOTE_UI_ORIGINS','https://idshield-ai-sih2026-21688.vivek420pandia.chatgpt.site').split(',') if value.strip()}
     if origin and os.environ.get('IDSHIELD_ALLOW_TUNNEL')=='1':
-        allowed=allowed or (urlparse(origin).scheme=='https' and (urlparse(origin).hostname or '').endswith('.trycloudflare.com'))
+        allowed=allowed or (urlparse(origin).scheme=='https' and (urlparse(origin).hostname or '').endswith('.trycloudflare.com')) or origin in remote_ui_origins
     if not allowed:return JSONResponse(envelope({'error':'Cross-origin API use is disabled'}),status_code=403)
     if request.method in ('POST','PUT','PATCH'):
         try:length=int(request.headers.get('content-length','0') or 0)
         except ValueError:length=0
         if length>25*1024*1024:return JSONResponse(envelope({'error':'Request exceeds 25 MB'}),status_code=413)
-    response=await call_next(request)
+    if request.method=='OPTIONS':response=Response(status_code=204)
+    else:response=await call_next(request)
     response.headers['X-Content-Type-Options']='nosniff';response.headers['Referrer-Policy']='no-referrer';response.headers['X-IDShield-Use']='Local decision support; human decision required'
+    if origin and origin in remote_ui_origins:
+        response.headers['Access-Control-Allow-Origin']=origin;response.headers['Vary']='Origin';response.headers['Access-Control-Allow-Headers']='Authorization, Content-Type';response.headers['Access-Control-Allow-Methods']='GET, POST, PUT, PATCH, DELETE, OPTIONS'
     if request.url.path.startswith('/api'):response.headers['Cache-Control']='no-store'
     return response
 
@@ -68,10 +72,12 @@ def login(body:Login):
     return envelope({'token':issue_token(account[0],body.role,sid=sid),'user':{'name':account[0],'role':body.role}})
 
 @app.get('/api/bootstrap')
-def bootstrap(who=Depends(READ)):
+def bootstrap(include_seeded:bool=False,who=Depends(READ)):
     with Session() as db:
-        cases=[case_out(c) for c in db.scalars(select(Case).order_by(Case.id.desc()))]
-        audit=[audit_out(a) for a in db.scalars(select(Audit).order_by(Audit.seq.desc()))]
+        stored=list(db.scalars(select(Case).order_by(Case.id.desc())))
+        visible=[c for c in stored if include_seeded or c.payload.get('created_by')!='system']
+        visible_ids={c.id for c in visible};cases=[case_out(c) for c in visible]
+        audit=[audit_out(a) for a in db.scalars(select(Audit).order_by(Audit.seq.desc())) if include_seeded or a.case_id in visible_ids]
     cases=session_store.list_cases(who['sid'])+cases;audit=session_store.list_audit(who['sid'])+audit
     return envelope({'cases':[public_payload(p) for p in cases],'audit':audit,'mode':'native','user':{'name':who['sub'],'role':who['role']},'database':engine.dialect.name,'ocr':'RapidOCR / Paddle-derived ONNX models','face':'OpenCV SFace trained embeddings with YuNet detection','face_models_ready':YUNET.exists() and SFACE.exists(),'retention':'Live uploads remain only in this signed session for up to four idle hours. Explicitly saved cases use encrypted storage until deletion.'})
 
@@ -106,7 +112,7 @@ def create_persistent_case(db,who,documents,label):
 @app.post('/api/cases')
 async def upload_case(background:BackgroundTasks,files:list[UploadFile]=File(...),consent_confirmed:bool=Form(False),traveller:UploadFile|None=File(None),capture_challenge:str|None=Form(None),who=Depends(REVIEW)):
     if not consent_confirmed:raise HTTPException(400,'Confirm that every person shown consented to this local screening')
-    if not 1<=len(files)<=4:raise HTTPException(400,'Upload or capture one to four documents')
+    if not 2<=len(files)<=4:raise HTTPException(400,'Upload or capture at least two and at most four documents')
     documents=[]
     for f in files:
         raw=await f.read(8*1024*1024+1)

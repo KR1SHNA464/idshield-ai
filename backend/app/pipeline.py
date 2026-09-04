@@ -2,7 +2,7 @@ import time,base64,copy
 from sqlalchemy import select
 from .database import Session,Case,Document,append_audit
 from .synthetic import make_signal,data_uri
-from .vision import quality,extract,forensics,face_embedding,compare,decode_image
+from .vision import quality,extract,forensics,pairwise_document_difference,face_embedding,compare,decode_image
 from . import session_store
 
 STAGES=['Intake','Extraction','Forensics','Intelligence','Decision']
@@ -80,6 +80,15 @@ def run_pipeline(case_id,who,traveller=None,capture_fresh=False,corrected_mrz=No
         def forensic():
             for i,im in enumerate(images):
                 for s in forensics(im):s['id']+=f'-{i}';s['documentIndex']=i;p['signals'].append(s)
+            if len(images)>1:
+                reference_fields=p['documents'][0]['fields'] or p['documents'][0]['mrz']['fields']
+                for i,im in enumerate(images[1:],1):
+                    candidate_fields=p['documents'][i]['fields'] or p['documents'][i]['mrz']['fields']
+                    same_subject=bool(reference_fields.get('name') and reference_fields.get('name')==candidate_fields.get('name'))
+                    result=pairwise_document_difference(images[0],im);flagged=result['flagged'] and same_subject
+                    detail=result['detail']+(' Extracted names match, so the localized difference needs officer review.' if flagged else ' No same-subject edit threshold was crossed.')
+                    signal=make_signal(f'pairwise-{i}','Forensics',f'Original/reference vs. Document {i+1}',detail,18 if flagged else 0,75 if result['assessed'] else 0,result['region'],'ORB alignment + measured pixel-difference localization')
+                    signal['documentIndex']=i;p['signals'].append(signal)
         stage(2,forensic,'Four independent pixel-level checks evaluated')
         def intelligence():
             doc_vectors=[];doc_face=None;methods=[]

@@ -30,7 +30,7 @@ def launch():
     if '--smoke-test' in sys.argv:
         session=urllib.request.Request(browser_url+'api/session',data=b'{"role":"officer","password":"officer-demo"}',headers={'Content-Type':'application/json'})
         token=json.load(urllib.request.urlopen(session))['data']['token'];headers={'Authorization':'Bearer '+token}
-        response=json.load(urllib.request.urlopen(urllib.request.Request(browser_url+'api/bootstrap',headers=headers)))
+        response=json.load(urllib.request.urlopen(urllib.request.Request(browser_url+'api/bootstrap?include_seeded=true',headers=headers)))
         assert len(response['data']['cases'])>=10;assert urllib.request.urlopen(browser_url).status==200;assert response['data']['face_models_ready']
         sample_req=urllib.request.Request(browser_url+'api/samples/run',data=b'{"index":1}',headers={'Content-Type':'application/json',**headers});sample_id=json.load(urllib.request.urlopen(sample_req))['data']['id']
         deadline=time.time()+150

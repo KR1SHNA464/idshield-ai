@@ -18,7 +18,7 @@ The launcher displays three access choices:
 
 Closing the launcher stops the local server and any tunnel. The executable is an unsigned hackathon prototype for Windows x64.
 
-The hosted Sites companion is deliberately a seeded browser walkthrough. It does not upload documents, run Python OCR, or claim durable security controls. Use the executable or Docker Compose for the genuine pipeline.
+The hosted Sites page is now a remote UI for the genuine pipeline. Start **Public HTTPS** in the Windows launcher, open the hosted page, and paste the temporary `trycloudflare.com` engine link. The browser then sends consented uploads directly to your running Python engine for real OCR, forensics, cross-document checks, and SFace comparison. You can also share the temporary tunnel URL itself; it serves the same live dashboard. The Sites page alone has no Python backend and cannot process files until it is connected.
 
 ## Architecture and actual stack
 
@@ -86,11 +86,11 @@ py -3.12 -c "from backend.app.synthetic import export_demo; export_demo('public/
 | Time | Demonstration |
 |---|---|
 | 00:00 | Double-click the launcher. Point out localhost, same-Wi-Fi, and temporary HTTPS links plus the no-government-database disclaimer. |
-| 00:15 | Choose **New screening → Live screening**. Confirm consent, upload or webcam-capture a document, and make a fresh traveller webcam capture. |
+| 00:15 | Choose **New live screening**. Confirm consent and upload two images: the original/reference document first and the suspected edited copy second. A fresh traveller webcam capture is optional but enables face comparison and the capture-freshness signal. |
 | 00:35 | Watch the five-stage stepper. Open Extraction for OCR/MRZ evidence, Forensics for measured pixel signals, and Intelligence for the freshly computed SFace score. |
 | 00:55 | Show that the live case says **Session only**. Record one officer action and rationale; explain that the system never chooses it. Use **Save this case** only if the volunteer agreed, or **Delete case** to erase it. |
-| 01:15 | Open **Ishan Roy, IDS-2026-0014**. Expand document-number and composite check digits to show actual expected/observed arithmetic. |
-| 01:35 | Open **Tara Bose, IDS-2026-0013**. Expand font, ELA, and photo-boundary signals and show highlighted evidence regions. |
+| 01:15 | Compare Document 1 and Document 2. Expand each document’s OCR/MRZ result, its measured font/ELA/photo/security signals, and the cross-document name, DOB, document-number, and face consistency evidence. The suspected edit is flagged only when a measured threshold or field check actually fails. |
+| 01:40 | If an edited image does not cross a heuristic threshold, explain that this prototype correctly leaves it for human review rather than inventing a detection. Optional fictional backup cases remain available for guaranteed checksum and splice demonstrations. |
 | 01:50 | Open **Audit trail**. Show who acted, what evidence was available, and that media/embedding copies are excluded from immutable records. |
 
 If a real ID is unsuitable for the judging room, use a consenting team member’s college ID or a generated specimen. The live pipeline accepts non-MRZ IDs; unavailable MRZ evidence is explicitly unassessed rather than invented.

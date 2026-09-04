@@ -6,10 +6,25 @@ export type AuditRecord={id:string;seq:number;case_id:string;action:string;creat
 export type User={name:string;role:string};
 declare global{interface Window{__IDSHIELD_NATIVE__?:boolean}}
 let token='';
-export const isNative=()=>typeof window!=='undefined'&&!!window.__IDSHIELD_NATIVE__;
+const ENGINE_KEY='idshield.liveEngine';
+function normalizeEngineUrl(value:string){
+ const url=new URL(value.trim());
+ if(!['http:','https:'].includes(url.protocol))throw new Error('Use an http:// or https:// engine link.')
+ if(typeof window!=='undefined'&&window.location.protocol==='https:'&&url.protocol!=='https:')throw new Error('This page requires the HTTPS tunnel link, not a local http:// address.')
+ return url.origin
+}
+export function getEngineUrl(){
+ if(typeof window==='undefined'||window.__IDSHIELD_NATIVE__)return ''
+ const query=new URLSearchParams(window.location.search).get('engine');
+ if(query){try{const normalized=normalizeEngineUrl(query);window.localStorage.setItem(ENGINE_KEY,normalized);return normalized}catch{return ''}}
+ return window.localStorage.getItem(ENGINE_KEY)||''
+}
+export function configureEngine(value:string){const normalized=normalizeEngineUrl(value);window.localStorage.setItem(ENGINE_KEY,normalized);token='';return normalized}
+export function clearEngine(){if(typeof window!=='undefined')window.localStorage.removeItem(ENGINE_KEY);token=''}
+export const isNative=()=>typeof window!=='undefined'&&(!!window.__IDSHIELD_NATIVE__||!!getEngineUrl());
 export async function api<T=unknown>(path:string,method='GET',body?:unknown):Promise<T>{
  const multipart=body instanceof FormData;
- const r=await fetch('/api'+path,{method,headers:{...(token?{Authorization:'Bearer '+token}:{}),...(!multipart&&body?{'Content-Type':'application/json'}:{})},body:body?(multipart?body:JSON.stringify(body)):undefined});
+ const r=await fetch(getEngineUrl()+'/api'+path,{method,headers:{...(token?{Authorization:'Bearer '+token}:{}),...(!multipart&&body?{'Content-Type':'application/json'}:{})},body:body?(multipart?body:JSON.stringify(body)):undefined});
  const payload=await r.json() as {data:T & {error?:string};detail?:string};if(!r.ok)throw new Error(payload.data?.error||payload.detail||'Unable to complete request');return payload.data;
 }
 export async function login(role='officer',password='officer-demo'){

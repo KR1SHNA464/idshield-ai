@@ -100,6 +100,48 @@ def forensics(im):
         out.append(make_signal(id,'Forensics',title,f'Measured {value:.3f}; heuristic threshold {threshold}. '+('Anomaly flagged for officer inspection. ' if flag else 'No threshold crossing. ')+method,points if flag else 0,60,region,'Measured heuristic proxy'))
     return out
 
+def pairwise_document_difference(reference,candidate):
+    """Align two document images and localize substantial pixel changes.
+
+    This is useful when an officer submits an original/reference plus a suspected
+    edited copy. It is a measured comparison signal, not proof of tampering.
+    """
+    ref=cv2.cvtColor(np.array(reference.convert('RGB')),cv2.COLOR_RGB2GRAY)
+    cand=cv2.cvtColor(np.array(candidate.convert('RGB')),cv2.COLOR_RGB2GRAY)
+    ref_h,ref_w=ref.shape
+    aspect_delta=abs((cand.shape[1]/cand.shape[0])-(ref_w/ref_h))/(ref_w/ref_h)
+    if aspect_delta>.12:
+        return {'assessed':False,'flagged':False,'changed_fraction':0.0,'region':None,'matches':0,'detail':'Document shapes differ too much for a reliable pixel alignment.'}
+    orb=cv2.ORB_create(nfeatures=1600)
+    ref_points,ref_desc=orb.detectAndCompute(ref,None);cand_points,cand_desc=orb.detectAndCompute(cand,None)
+    good=[]
+    if ref_desc is not None and cand_desc is not None:
+        for pair in cv2.BFMatcher(cv2.NORM_HAMMING).knnMatch(cand_desc,ref_desc,k=2):
+            if len(pair)==2 and pair[0].distance<.72*pair[1].distance:good.append(pair[0])
+    if len(good)>=12:
+        source=np.float32([cand_points[m.queryIdx].pt for m in good]).reshape(-1,1,2)
+        target=np.float32([ref_points[m.trainIdx].pt for m in good]).reshape(-1,1,2)
+        matrix,_=cv2.findHomography(source,target,cv2.RANSAC,4.0)
+        aligned=cv2.warpPerspective(cand,matrix,(ref_w,ref_h),borderValue=255) if matrix is not None else cv2.resize(cand,(ref_w,ref_h))
+        assessed=matrix is not None
+    else:
+        aligned=cv2.resize(cand,(ref_w,ref_h));assessed=reference.size==candidate.size
+    if not assessed:
+        return {'assessed':False,'flagged':False,'changed_fraction':0.0,'region':None,'matches':len(good),'detail':'Too few matching features for a reliable original-versus-copy alignment.'}
+    ref_smooth=cv2.GaussianBlur(ref,(3,3),0);cand_smooth=cv2.GaussianBlur(aligned,(3,3),0)
+    delta=cv2.absdiff(ref_smooth,cand_smooth);mask=(delta>20).astype(np.uint8)*255
+    mask=cv2.morphologyEx(mask,cv2.MORPH_OPEN,np.ones((3,3),np.uint8));mask=cv2.morphologyEx(mask,cv2.MORPH_CLOSE,np.ones((9,9),np.uint8))
+    contours,_=cv2.findContours(mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    contours=[c for c in contours if cv2.contourArea(c)>ref_w*ref_h*.00012]
+    changed=float(sum(cv2.contourArea(c) for c in contours)/(ref_w*ref_h))
+    region=None;largest=0.0
+    if contours:
+        contour=max(contours,key=cv2.contourArea);x,y,w,h=cv2.boundingRect(contour);largest=float(cv2.contourArea(contour)/(ref_w*ref_h))
+        region=[round(x/ref_w*100,1),round(y/ref_h*100,1),round(w/ref_w*100,1),round(h/ref_h*100,1)]
+    flagged=.0025<=changed<=.35 and largest>=.0008
+    detail=f'Aligned Document 2+ to Document 1 using {len(good)} matched features; localized changed area {changed*100:.2f}% (largest region {largest*100:.2f}%).'
+    return {'assessed':True,'flagged':flagged,'changed_fraction':round(changed,4),'region':region,'matches':len(good),'detail':detail}
+
 def _face_models(size):
     global FACE_DETECTOR,FACE_RECOGNIZER
     if not YUNET.exists() or not SFACE.exists():
