@@ -67,11 +67,12 @@ def launch():
     def copy(value):window.clipboard_clear();window.clipboard_append(value);status.set('Link copied')
     def start_tunnel():
         if tunnel_process[0] is not None and tunnel_process[0].poll() is None:return
-        ssh_path=shutil.which('ssh.exe') or shutil.which('ssh');use_ssh=bool(ssh_path) and retry_count[0]<2
-        if use_ssh:
+        ssh_path=shutil.which('ssh.exe') or shutil.which('ssh');use_cloudflare=cloudflared.exists() and retry_count[0]<3
+        if use_cloudflare:
+            # HTTP/2 works reliably on networks where cloudflared's automatic QUIC choice is blocked.
+            args=[str(cloudflared),'tunnel','--url',browser_url,'--no-autoupdate','--protocol','http2'];link_pattern=r'https://[a-z0-9-]+\.trycloudflare\.com';provider='Cloudflare'
+        elif ssh_path:
             known_hosts=data/'localhost-run-known-hosts';args=[ssh_path,'-T','-o','StrictHostKeyChecking=accept-new','-o',f'UserKnownHostsFile={known_hosts}','-o','ExitOnForwardFailure=yes','-o','ConnectTimeout=15','-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3','-R',f'80:127.0.0.1:{port}','nokey@localhost.run'];link_pattern=r'https://[a-z0-9-]+\.lhr\.life';provider='localhost.run'
-        elif cloudflared.exists():
-            args=[str(cloudflared),'tunnel','--url',browser_url,'--no-autoupdate','--protocol','auto'];link_pattern=r'https://[a-z0-9-]+\.trycloudflare\.com';provider='Cloudflare'
         else:status.set('No public-tunnel component is available; local and LAN links still work.');return
         status.set(f'Starting mobile HTTPS through {provider}…');tunnel_url.set(f'Waiting for {provider} mobile link…')
         def verify(link,process):
