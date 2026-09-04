@@ -63,6 +63,8 @@ def test_api_auth_and_rbac(client):
     assert client.post('/api/session',json={'role':'admin','password':'wrong'}).status_code==401
     assert client.get('/api/bootstrap',headers={**officer,'Origin':'https://unrelated.example'}).status_code==403
 def test_seed_count_and_encryption(client):
+    live_only=client.get('/api/bootstrap',headers=auth(client)).json()['data']['cases']
+    assert all(case.get('created_by')!='system' for case in live_only)
     data=client.get('/api/bootstrap?include_seeded=true',headers=auth(client)).json()
     assert data['human_decision_required'] is True and len(data['data']['cases'])>=10
     assert data['data']['face']=='OpenCV SFace trained embeddings with YuNet detection'
