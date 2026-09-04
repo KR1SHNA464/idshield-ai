@@ -43,7 +43,7 @@ def launch():
         server.should_exit=True;server_thread.join(10);return
     import tkinter as tk
     window=tk.Tk();window.title('IDShield AI · Live screening launcher');window.geometry('620x500');window.resizable(False,False);window.configure(bg='#102238')
-    tunnel_process=[None];tunnel_url=tk.StringVar(value='Starting a fresh public HTTPS link…');status=tk.StringVar(value='Local engine ready · starting remote access');closing=threading.Event();retry_count=[0]
+    tunnel_process=[None];tunnel_url=tk.StringVar(value='Starting a fresh public HTTPS link…');status=tk.StringVar(value='Local engine ready · starting direct access');closing=threading.Event();retry_count=[0];public_opened=[False]
     cloudflared=root/'cloudflared.exe'
     def copy(value):window.clipboard_clear();window.clipboard_append(value);status.set('Link copied')
     def start_tunnel():
@@ -55,7 +55,10 @@ def launch():
                 if closing.is_set():return
                 try:
                     if urllib.request.urlopen(link+'/',timeout=5).status==200:
-                        def ready():tunnel_url.set(link);copy(link);status.set('Public link ready and copied · keep this window open')
+                        def ready():
+                            tunnel_url.set(link);copy(link)
+                            if not public_opened[0]:webbrowser.open(link);public_opened[0]=True
+                            status.set('Direct live dashboard opened · no connection step · keep this window open')
                         window.after(0,ready);return
                 except Exception:time.sleep(1)
             window.after(0,lambda:(tunnel_url.set(link),status.set('Link created; allow a few seconds and retry if it is still warming up.')))
@@ -75,24 +78,24 @@ def launch():
             except Exception as exc:logging.exception('Tunnel failed');window.after(0,lambda:status.set('Tunnel could not start; see launcher.log.'))
         threading.Thread(target=worker,daemon=True).start()
     def restart_tunnel():
-        retry_count[0]=0
+        retry_count[0]=0;public_opened[0]=False
         if tunnel_process[0] is not None and tunnel_process[0].poll() is None:tunnel_process[0].terminate()
         else:start_tunnel()
     tk.Label(window,text='IDShield AI',bg='#102238',fg='#62d3bb',font=('Segoe UI',24,'bold')).pack(pady=(22,3))
     tk.Label(window,text='Local identity and document risk screening',bg='#102238',fg='#e4eef3',font=('Segoe UI',11)).pack()
     tk.Label(window,text='NO LIVE GOVERNMENT DATABASE INTEGRATION\nALL VERIFICATION RUNS LOCALLY WITHIN THIS APP',bg='#102238',fg='#9cb1c3',font=('Segoe UI',9,'bold'),justify='center').pack(pady=12)
-    tk.Button(window,text='Open officer dashboard',command=lambda:webbrowser.open(browser_url),bg='#178c79',fg='white',font=('Segoe UI',11,'bold'),relief='flat',padx=18,pady=8).pack()
+    tk.Button(window,text='Open direct live dashboard',command=lambda:webbrowser.open(tunnel_url.get()) if tunnel_url.get().startswith('https://') and ' · ' not in tunnel_url.get() else start_tunnel(),bg='#178c79',fg='white',font=('Segoe UI',11,'bold'),relief='flat',padx=18,pady=8).pack()
     links=tk.Frame(window,bg='#102238');links.pack(fill='x',padx=35,pady=14)
     for title,value in [('This computer',browser_url),('Same Wi-Fi / LAN',lan_url)]:
         row=tk.Frame(links,bg='#172f49');row.pack(fill='x',pady=3);tk.Label(row,text=title,width=17,anchor='w',bg='#172f49',fg='#9cb1c3',font=('Segoe UI',9,'bold')).pack(side='left',padx=10,pady=8);tk.Label(row,text=value,anchor='w',bg='#172f49',fg='#e4eef3',font=('Consolas',9)).pack(side='left',fill='x',expand=True);tk.Button(row,text='Copy',command=lambda u=value:copy(u),bg='#26445f',fg='white',relief='flat').pack(side='right',padx=7)
     tunnel=tk.Frame(window,bg='#172f49');tunnel.pack(fill='x',padx=35,pady=3);tk.Label(tunnel,text='Public HTTPS',width=17,anchor='w',bg='#172f49',fg='#9cb1c3',font=('Segoe UI',9,'bold')).pack(side='left',padx=10,pady=8);tk.Label(tunnel,textvariable=tunnel_url,anchor='w',bg='#172f49',fg='#e4eef3',font=('Segoe UI',8),wraplength=285,justify='left').pack(side='left',fill='x',expand=True);tk.Button(tunnel,text='Restart',command=restart_tunnel,bg='#26445f',fg='white',relief='flat').pack(side='right',padx=7)
     public_actions=tk.Frame(window,bg='#102238');public_actions.pack();tk.Button(public_actions,text='Open public link',command=lambda:webbrowser.open(tunnel_url.get()) if tunnel_url.get().startswith('https://') else start_tunnel(),bg='#102238',fg='#62d3bb',relief='flat').pack(side='left',padx=8);tk.Button(public_actions,text='Copy public link',command=lambda:copy(tunnel_url.get()) if tunnel_url.get().startswith('https://') else start_tunnel(),bg='#102238',fg='#62d3bb',relief='flat').pack(side='left',padx=8)
-    tk.Label(window,textvariable=status,bg='#102238',fg='#d6b971',font=('Segoe UI',9)).pack(pady=(6,2));tk.Label(window,text='A new temporary link is created each time. It works only while this window stays open.\nUse HTTPS for phone cameras and share only with consenting participants.',bg='#102238',fg='#839caf',font=('Segoe UI',8),justify='center').pack()
+    tk.Label(window,textvariable=status,bg='#102238',fg='#d6b971',font=('Segoe UI',9)).pack(pady=(6,2));tk.Label(window,text='The direct live page opens automatically. No engine URL needs to be pasted.\nThe temporary link works while this window stays open; share only with consenting participants.',bg='#102238',fg='#839caf',font=('Segoe UI',8),justify='center').pack()
     def close():
         closing.set()
         if tunnel_process[0] is not None:tunnel_process[0].terminate()
         server.should_exit=True;window.destroy()
-    window.protocol('WM_DELETE_WINDOW',close);window.after(600,start_tunnel);webbrowser.open(browser_url);window.mainloop();server_thread.join(8)
+    window.protocol('WM_DELETE_WINDOW',close);window.after(600,start_tunnel);window.mainloop();server_thread.join(8)
 
 if __name__=='__main__':
     try:launch()

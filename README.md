@@ -14,11 +14,11 @@ The launcher displays three access choices:
 
 1. **This computer:** opens automatically on `127.0.0.1`.
 2. **Same Wi-Fi / LAN:** displays and copies `http://<local-IP>:<port>` for nearby phones and laptops. Windows may ask to allow the app through the private-network firewall. Mobile browsers usually require HTTPS for `getUserMedia`, so file/camera-picker upload remains available on LAN while the live webcam button is best used through localhost or the HTTPS tunnel.
-3. **Temporary public HTTPS:** click **Start** in the same launcher. The bundled `cloudflared` process produces a `trycloudflare.com` URL with no account. The screening engine still runs on the host machine, but browser traffic passes through Cloudflare; use this only with informed consent and prefer synthetic specimens for remote judging.
+3. **Temporary public HTTPS:** the launcher automatically creates, copies, and opens a `trycloudflare.com` URL with no connection or paste step. The screening engine still runs on the host machine, but browser traffic passes through Cloudflare; use this only with informed consent and prefer synthetic specimens for remote judging.
 
 Closing the launcher stops the local server and any tunnel. The executable is an unsigned hackathon prototype for Windows x64.
 
-The hosted Sites page is now a remote UI for the genuine pipeline. Start **Public HTTPS** in the Windows launcher, open the hosted page, and paste the temporary `trycloudflare.com` engine link. The browser then sends consented uploads directly to your running Python engine for real OCR, forensics, cross-document checks, and SFace comparison. You can also share the temporary tunnel URL itself; it serves the same live dashboard. The Sites page alone has no Python backend and cannot process files until it is connected.
+For direct live screening, use the temporary page that the Windows launcher opens automatically. It serves the UI and Python engine together, so no engine-link connection is required. The separate hosted Sites page can still connect manually when needed, but it has no Python backend by itself.
 
 ## Architecture and actual stack
 
