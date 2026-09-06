@@ -1,5 +1,7 @@
 # IDShield AI — SIH 2026, PS 21688
 
+[Download the Windows app](https://github.com/KR1SHNA464/idshield-ai/releases/download/v1.0.0/IDShield-AI-Windows.exe) · [Open the v1.0.0 release](https://github.com/KR1SHNA464/idshield-ai/releases/tag/v1.0.0) · [View the hosted interface](https://idshield-ai-sih2026-21688.vivek420pandia.chatgpt.site)
+
 **NO LIVE GOVERNMENT DATABASE INTEGRATION — ALL VERIFICATION RUNS LOCALLY WITHIN THIS APP.**
 
 IDShield AI is a decision-support prototype. It computes a risk score, independent evidence signals, and plain-language explanations from images supplied by a consenting participant. It never produces an automatic allow/deny result. Approve, Escalate, Reject, and Request Recapture are attributable human officer actions.
@@ -14,7 +16,7 @@ The launcher enforces one running instance and displays three access choices:
 
 1. **Stable on this computer:** always opens `http://127.0.0.1:8765` automatically. Reopening the executable focuses this same dashboard instead of starting a duplicate engine.
 2. **Same Wi-Fi / LAN:** displays and copies `http://<local-IP>:8765` for nearby phones and laptops. Windows may ask to allow the app through the private-network firewall. Mobile browsers usually require HTTPS for `getUserMedia`, so file/camera-picker upload remains available on LAN while the live webcam button is best used through localhost or the HTTPS tunnel.
-3. **Mobile HTTPS:** the launcher automatically creates and copies a temporary `lhr.life` URL through the Windows OpenSSH client and localhost.run, with bundled Cloudflare Quick Tunnel as fallback. A background health check replaces an expired link. These no-account hostnames cannot be bookmarked across launcher sessions. The screening engine still runs on the host machine, while browser traffic passes through the selected tunnel provider; use this only with informed consent and prefer synthetic specimens for remote judging.
+3. **Mobile HTTPS:** the launcher automatically creates and copies a temporary `trycloudflare.com` URL through the bundled Cloudflare Quick Tunnel over HTTP/2, with Windows OpenSSH and localhost.run as fallback. A background health check replaces an expired link. These no-account hostnames cannot be bookmarked across launcher sessions. The screening engine still runs on the host machine, while browser traffic passes through the selected tunnel provider; use this only with informed consent and prefer synthetic specimens for remote judging.
 
 Closing the launcher with its **X** button minimizes it and keeps the local server and mobile tunnel running. Use **Stop engine and exit** inside the launcher when you intentionally want to shut both links down. Reopening the executable restores the existing launcher and dashboard. The executable is an unsigned hackathon prototype for Windows x64.
 
@@ -44,7 +46,7 @@ YuNet face detection → trained SFace 128-D embedding → cosine score
 | InsightFace/ArcFace + PyTorch | OpenCV Zoo YuNet detection and trained SFace recognition model with 128-D embeddings and cosine similarity | This is the allowed lightweight face-model substitution. Runtime inference uses OpenCV DNN rather than PyTorch. Scores are not calibrated identity probabilities |
 | AI forensics | Four independently reported OpenCV measurements | Font/component variation, JPEG ELA residual ratio, portrait-boundary edge density, and security-region texture. They surface anomalies for review; they do not prove fraud, cloning, hologram validity, or deepfakes |
 | Liveness | Webcam-only signed short-lived capture challenge | Confirms the app’s fresh capture path. It is not production anti-spoofing or replay-resistant liveness |
-| Cross-document intelligence | Name/DOB consistency, document-face consistency, and SFace search across the current session plus explicitly saved cases | No government, watchlist, or external biometric index |
+| Cross-document intelligence | Normalized name/DOB consistency, same-type document-number checks, document-face consistency, and SFace search across the current session plus explicitly saved cases | No government, watchlist, or external biometric index |
 | Explainable risk | Disclosed additive rule score capped at 100 | Risk bands prioritize human review; they are not fraud probabilities |
 
 The ONNX model hashes and origins are recorded in `THIRD_PARTY_NOTICES.md`.
