@@ -4,6 +4,7 @@ Set-Location $root
 npm run build:desktop
 Copy-Item 'desktop-dist\desktop\index.html' 'desktop-dist\index.html' -Force
 py -3.12 backend\models\download_models.py
+& "$PSScriptRoot\download_cloudflared.ps1"
 py -3.12 desktop\package_source.py
 py -3.12 -m PyInstaller --noconfirm --clean --onefile --windowed --name IDShield-AI-Windows `
   --collect-all rapidocr_onnxruntime `

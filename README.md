@@ -115,7 +115,7 @@ docker compose up --build
 
 Open `http://localhost:8080`. Compose was not available in the authoring environment, so its files were inspected but not runtime-tested here. The same FastAPI tests run with SQLite; PostgreSQL models, encrypted fields, triggers, and advisory locking remain in the Compose path.
 
-For Python development, install `backend/requirements.txt`, run `py -3.12 backend/models/download_models.py` to fetch the checksum-pinned official OpenCV models, build the SPA with `npm run build:desktop`, copy `desktop-dist/desktop/index.html` to `desktop-dist/index.html`, set `IDSHIELD_DATA_DIR`, and run `py -3.12 desktop/launcher.py`. Docker performs the verified model download during its image build. `desktop/build_windows.ps1` performs the same model check and reproduces the packaged launcher when `tools/cloudflared.exe` is present.
+For Python development, install `backend/requirements.txt`, run `py -3.12 backend/models/download_models.py` to fetch the checksum-pinned official OpenCV models, build the SPA with `npm run build:desktop`, copy `desktop-dist/desktop/index.html` to `desktop-dist/index.html`, set `IDSHIELD_DATA_DIR`, and run `py -3.12 desktop/launcher.py`. Docker performs the verified model download during its image build. `desktop/build_windows.ps1` reproduces the packaged launcher and automatically downloads checksum-pinned official OpenCV models and Cloudflare's Windows tunnel binary when they are absent.
 
 ## Scoring and tests
 
